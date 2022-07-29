@@ -1,4 +1,4 @@
-docker run -p 5432:5432 -d \
+docker run -p 9010:5432 -d \
     -e POSTGRES_PASSWORD=postgres_test \
 	-e POSTGRES_USER=postgres \
 	-e POSTGRES_DB=moments_test \
