@@ -38,6 +38,13 @@ func (User) Edges() []ent.Edge {
 			OnDelete: entsql.Cascade,
 		}),
 		edge.To("following", User.Type).From("followers"),
+		edge.To("sender_pv_chat", PrivateChat.Type).Annotations(entsql.Annotation{
+			OnDelete: entsql.Cascade,
+		}),
+		edge.To("receiver_pv_chat", PrivateChat.Type).Annotations(entsql.Annotation{
+			OnDelete: entsql.Cascade,
+		}),
+		edge.To("messages", Message.Type),
 	}
 }
 

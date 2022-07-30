@@ -6,8 +6,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"moments/ent/channel"
+	"moments/ent/channelpost"
 	"moments/ent/file"
+	"moments/ent/group"
+	"moments/ent/message"
 	"moments/ent/post"
+	"moments/ent/privatechat"
+	"moments/ent/publicchat"
 	"moments/ent/user"
 
 	"entgo.io/ent"
@@ -33,9 +39,15 @@ type OrderFunc func(*sql.Selector)
 // columnChecker returns a function indicates if the column exists in the given column.
 func columnChecker(table string) func(string) error {
 	checks := map[string]func(string) bool{
-		file.Table: file.ValidColumn,
-		post.Table: post.ValidColumn,
-		user.Table: user.ValidColumn,
+		channel.Table:     channel.ValidColumn,
+		channelpost.Table: channelpost.ValidColumn,
+		file.Table:        file.ValidColumn,
+		group.Table:       group.ValidColumn,
+		message.Table:     message.ValidColumn,
+		post.Table:        post.ValidColumn,
+		privatechat.Table: privatechat.ValidColumn,
+		publicchat.Table:  publicchat.ValidColumn,
+		user.Table:        user.ValidColumn,
 	}
 	check, ok := checks[table]
 	if !ok {

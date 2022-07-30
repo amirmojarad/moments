@@ -12,10 +12,22 @@ import (
 // Tx is a transactional client that is created by calling Client.Tx().
 type Tx struct {
 	config
+	// Channel is the client for interacting with the Channel builders.
+	Channel *ChannelClient
+	// ChannelPost is the client for interacting with the ChannelPost builders.
+	ChannelPost *ChannelPostClient
 	// File is the client for interacting with the File builders.
 	File *FileClient
+	// Group is the client for interacting with the Group builders.
+	Group *GroupClient
+	// Message is the client for interacting with the Message builders.
+	Message *MessageClient
 	// Post is the client for interacting with the Post builders.
 	Post *PostClient
+	// PrivateChat is the client for interacting with the PrivateChat builders.
+	PrivateChat *PrivateChatClient
+	// PublicChat is the client for interacting with the PublicChat builders.
+	PublicChat *PublicChatClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 
@@ -153,8 +165,14 @@ func (tx *Tx) Client() *Client {
 }
 
 func (tx *Tx) init() {
+	tx.Channel = NewChannelClient(tx.config)
+	tx.ChannelPost = NewChannelPostClient(tx.config)
 	tx.File = NewFileClient(tx.config)
+	tx.Group = NewGroupClient(tx.config)
+	tx.Message = NewMessageClient(tx.config)
 	tx.Post = NewPostClient(tx.config)
+	tx.PrivateChat = NewPrivateChatClient(tx.config)
+	tx.PublicChat = NewPublicChatClient(tx.config)
 	tx.User = NewUserClient(tx.config)
 }
 
@@ -165,7 +183,7 @@ func (tx *Tx) init() {
 // of them in order to commit or rollback the transaction.
 //
 // If a closed transaction is embedded in one of the generated entities, and the entity
-// applies a query, for example: File.QueryXXX(), the query will be executed
+// applies a query, for example: Channel.QueryXXX(), the query will be executed
 // through the driver which created this transaction.
 //
 // Note that txDriver is not goroutine safe.

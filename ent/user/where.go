@@ -984,6 +984,90 @@ func HasFollowingWith(preds ...predicate.User) predicate.User {
 	})
 }
 
+// HasSenderPvChat applies the HasEdge predicate on the "sender_pv_chat" edge.
+func HasSenderPvChat() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(SenderPvChatTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, SenderPvChatTable, SenderPvChatColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasSenderPvChatWith applies the HasEdge predicate on the "sender_pv_chat" edge with a given conditions (other predicates).
+func HasSenderPvChatWith(preds ...predicate.PrivateChat) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(SenderPvChatInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, SenderPvChatTable, SenderPvChatColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasReceiverPvChat applies the HasEdge predicate on the "receiver_pv_chat" edge.
+func HasReceiverPvChat() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(ReceiverPvChatTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ReceiverPvChatTable, ReceiverPvChatColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasReceiverPvChatWith applies the HasEdge predicate on the "receiver_pv_chat" edge with a given conditions (other predicates).
+func HasReceiverPvChatWith(preds ...predicate.PrivateChat) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(ReceiverPvChatInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ReceiverPvChatTable, ReceiverPvChatColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasMessages applies the HasEdge predicate on the "messages" edge.
+func HasMessages() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(MessagesTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, MessagesTable, MessagesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasMessagesWith applies the HasEdge predicate on the "messages" edge with a given conditions (other predicates).
+func HasMessagesWith(preds ...predicate.Message) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(MessagesInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, MessagesTable, MessagesColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.User) predicate.User {
 	return predicate.User(func(s *sql.Selector) {

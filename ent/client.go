@@ -9,8 +9,14 @@ import (
 
 	"moments/ent/migrate"
 
+	"moments/ent/channel"
+	"moments/ent/channelpost"
 	"moments/ent/file"
+	"moments/ent/group"
+	"moments/ent/message"
 	"moments/ent/post"
+	"moments/ent/privatechat"
+	"moments/ent/publicchat"
 	"moments/ent/user"
 
 	"entgo.io/ent/dialect"
@@ -23,10 +29,22 @@ type Client struct {
 	config
 	// Schema is the client for creating, migrating and dropping schema.
 	Schema *migrate.Schema
+	// Channel is the client for interacting with the Channel builders.
+	Channel *ChannelClient
+	// ChannelPost is the client for interacting with the ChannelPost builders.
+	ChannelPost *ChannelPostClient
 	// File is the client for interacting with the File builders.
 	File *FileClient
+	// Group is the client for interacting with the Group builders.
+	Group *GroupClient
+	// Message is the client for interacting with the Message builders.
+	Message *MessageClient
 	// Post is the client for interacting with the Post builders.
 	Post *PostClient
+	// PrivateChat is the client for interacting with the PrivateChat builders.
+	PrivateChat *PrivateChatClient
+	// PublicChat is the client for interacting with the PublicChat builders.
+	PublicChat *PublicChatClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 }
@@ -42,8 +60,14 @@ func NewClient(opts ...Option) *Client {
 
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
+	c.Channel = NewChannelClient(c.config)
+	c.ChannelPost = NewChannelPostClient(c.config)
 	c.File = NewFileClient(c.config)
+	c.Group = NewGroupClient(c.config)
+	c.Message = NewMessageClient(c.config)
 	c.Post = NewPostClient(c.config)
+	c.PrivateChat = NewPrivateChatClient(c.config)
+	c.PublicChat = NewPublicChatClient(c.config)
 	c.User = NewUserClient(c.config)
 }
 
@@ -76,11 +100,17 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:    ctx,
-		config: cfg,
-		File:   NewFileClient(cfg),
-		Post:   NewPostClient(cfg),
-		User:   NewUserClient(cfg),
+		ctx:         ctx,
+		config:      cfg,
+		Channel:     NewChannelClient(cfg),
+		ChannelPost: NewChannelPostClient(cfg),
+		File:        NewFileClient(cfg),
+		Group:       NewGroupClient(cfg),
+		Message:     NewMessageClient(cfg),
+		Post:        NewPostClient(cfg),
+		PrivateChat: NewPrivateChatClient(cfg),
+		PublicChat:  NewPublicChatClient(cfg),
+		User:        NewUserClient(cfg),
 	}, nil
 }
 
@@ -98,18 +128,24 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:    ctx,
-		config: cfg,
-		File:   NewFileClient(cfg),
-		Post:   NewPostClient(cfg),
-		User:   NewUserClient(cfg),
+		ctx:         ctx,
+		config:      cfg,
+		Channel:     NewChannelClient(cfg),
+		ChannelPost: NewChannelPostClient(cfg),
+		File:        NewFileClient(cfg),
+		Group:       NewGroupClient(cfg),
+		Message:     NewMessageClient(cfg),
+		Post:        NewPostClient(cfg),
+		PrivateChat: NewPrivateChatClient(cfg),
+		PublicChat:  NewPublicChatClient(cfg),
+		User:        NewUserClient(cfg),
 	}, nil
 }
 
 // Debug returns a new debug-client. It's used to get verbose logging on specific operations.
 //
 //	client.Debug().
-//		File.
+//		Channel.
 //		Query().
 //		Count(ctx)
 //
@@ -132,9 +168,195 @@ func (c *Client) Close() error {
 // Use adds the mutation hooks to all the entity clients.
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
+	c.Channel.Use(hooks...)
+	c.ChannelPost.Use(hooks...)
 	c.File.Use(hooks...)
+	c.Group.Use(hooks...)
+	c.Message.Use(hooks...)
 	c.Post.Use(hooks...)
+	c.PrivateChat.Use(hooks...)
+	c.PublicChat.Use(hooks...)
 	c.User.Use(hooks...)
+}
+
+// ChannelClient is a client for the Channel schema.
+type ChannelClient struct {
+	config
+}
+
+// NewChannelClient returns a client for the Channel from the given config.
+func NewChannelClient(c config) *ChannelClient {
+	return &ChannelClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `channel.Hooks(f(g(h())))`.
+func (c *ChannelClient) Use(hooks ...Hook) {
+	c.hooks.Channel = append(c.hooks.Channel, hooks...)
+}
+
+// Create returns a builder for creating a Channel entity.
+func (c *ChannelClient) Create() *ChannelCreate {
+	mutation := newChannelMutation(c.config, OpCreate)
+	return &ChannelCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Channel entities.
+func (c *ChannelClient) CreateBulk(builders ...*ChannelCreate) *ChannelCreateBulk {
+	return &ChannelCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Channel.
+func (c *ChannelClient) Update() *ChannelUpdate {
+	mutation := newChannelMutation(c.config, OpUpdate)
+	return &ChannelUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ChannelClient) UpdateOne(ch *Channel) *ChannelUpdateOne {
+	mutation := newChannelMutation(c.config, OpUpdateOne, withChannel(ch))
+	return &ChannelUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ChannelClient) UpdateOneID(id int) *ChannelUpdateOne {
+	mutation := newChannelMutation(c.config, OpUpdateOne, withChannelID(id))
+	return &ChannelUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Channel.
+func (c *ChannelClient) Delete() *ChannelDelete {
+	mutation := newChannelMutation(c.config, OpDelete)
+	return &ChannelDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ChannelClient) DeleteOne(ch *Channel) *ChannelDeleteOne {
+	return c.DeleteOneID(ch.ID)
+}
+
+// DeleteOne returns a builder for deleting the given entity by its id.
+func (c *ChannelClient) DeleteOneID(id int) *ChannelDeleteOne {
+	builder := c.Delete().Where(channel.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ChannelDeleteOne{builder}
+}
+
+// Query returns a query builder for Channel.
+func (c *ChannelClient) Query() *ChannelQuery {
+	return &ChannelQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a Channel entity by its id.
+func (c *ChannelClient) Get(ctx context.Context, id int) (*Channel, error) {
+	return c.Query().Where(channel.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ChannelClient) GetX(ctx context.Context, id int) *Channel {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *ChannelClient) Hooks() []Hook {
+	return c.hooks.Channel
+}
+
+// ChannelPostClient is a client for the ChannelPost schema.
+type ChannelPostClient struct {
+	config
+}
+
+// NewChannelPostClient returns a client for the ChannelPost from the given config.
+func NewChannelPostClient(c config) *ChannelPostClient {
+	return &ChannelPostClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `channelpost.Hooks(f(g(h())))`.
+func (c *ChannelPostClient) Use(hooks ...Hook) {
+	c.hooks.ChannelPost = append(c.hooks.ChannelPost, hooks...)
+}
+
+// Create returns a builder for creating a ChannelPost entity.
+func (c *ChannelPostClient) Create() *ChannelPostCreate {
+	mutation := newChannelPostMutation(c.config, OpCreate)
+	return &ChannelPostCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ChannelPost entities.
+func (c *ChannelPostClient) CreateBulk(builders ...*ChannelPostCreate) *ChannelPostCreateBulk {
+	return &ChannelPostCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ChannelPost.
+func (c *ChannelPostClient) Update() *ChannelPostUpdate {
+	mutation := newChannelPostMutation(c.config, OpUpdate)
+	return &ChannelPostUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ChannelPostClient) UpdateOne(cp *ChannelPost) *ChannelPostUpdateOne {
+	mutation := newChannelPostMutation(c.config, OpUpdateOne, withChannelPost(cp))
+	return &ChannelPostUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ChannelPostClient) UpdateOneID(id int) *ChannelPostUpdateOne {
+	mutation := newChannelPostMutation(c.config, OpUpdateOne, withChannelPostID(id))
+	return &ChannelPostUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ChannelPost.
+func (c *ChannelPostClient) Delete() *ChannelPostDelete {
+	mutation := newChannelPostMutation(c.config, OpDelete)
+	return &ChannelPostDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ChannelPostClient) DeleteOne(cp *ChannelPost) *ChannelPostDeleteOne {
+	return c.DeleteOneID(cp.ID)
+}
+
+// DeleteOne returns a builder for deleting the given entity by its id.
+func (c *ChannelPostClient) DeleteOneID(id int) *ChannelPostDeleteOne {
+	builder := c.Delete().Where(channelpost.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ChannelPostDeleteOne{builder}
+}
+
+// Query returns a query builder for ChannelPost.
+func (c *ChannelPostClient) Query() *ChannelPostQuery {
+	return &ChannelPostQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a ChannelPost entity by its id.
+func (c *ChannelPostClient) Get(ctx context.Context, id int) (*ChannelPost, error) {
+	return c.Query().Where(channelpost.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ChannelPostClient) GetX(ctx context.Context, id int) *ChannelPost {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *ChannelPostClient) Hooks() []Hook {
+	return c.hooks.ChannelPost
 }
 
 // FileClient is a client for the File schema.
@@ -225,6 +447,218 @@ func (c *FileClient) GetX(ctx context.Context, id int) *File {
 // Hooks returns the client hooks.
 func (c *FileClient) Hooks() []Hook {
 	return c.hooks.File
+}
+
+// GroupClient is a client for the Group schema.
+type GroupClient struct {
+	config
+}
+
+// NewGroupClient returns a client for the Group from the given config.
+func NewGroupClient(c config) *GroupClient {
+	return &GroupClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `group.Hooks(f(g(h())))`.
+func (c *GroupClient) Use(hooks ...Hook) {
+	c.hooks.Group = append(c.hooks.Group, hooks...)
+}
+
+// Create returns a builder for creating a Group entity.
+func (c *GroupClient) Create() *GroupCreate {
+	mutation := newGroupMutation(c.config, OpCreate)
+	return &GroupCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Group entities.
+func (c *GroupClient) CreateBulk(builders ...*GroupCreate) *GroupCreateBulk {
+	return &GroupCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Group.
+func (c *GroupClient) Update() *GroupUpdate {
+	mutation := newGroupMutation(c.config, OpUpdate)
+	return &GroupUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *GroupClient) UpdateOne(gr *Group) *GroupUpdateOne {
+	mutation := newGroupMutation(c.config, OpUpdateOne, withGroup(gr))
+	return &GroupUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *GroupClient) UpdateOneID(id int) *GroupUpdateOne {
+	mutation := newGroupMutation(c.config, OpUpdateOne, withGroupID(id))
+	return &GroupUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Group.
+func (c *GroupClient) Delete() *GroupDelete {
+	mutation := newGroupMutation(c.config, OpDelete)
+	return &GroupDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *GroupClient) DeleteOne(gr *Group) *GroupDeleteOne {
+	return c.DeleteOneID(gr.ID)
+}
+
+// DeleteOne returns a builder for deleting the given entity by its id.
+func (c *GroupClient) DeleteOneID(id int) *GroupDeleteOne {
+	builder := c.Delete().Where(group.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &GroupDeleteOne{builder}
+}
+
+// Query returns a query builder for Group.
+func (c *GroupClient) Query() *GroupQuery {
+	return &GroupQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a Group entity by its id.
+func (c *GroupClient) Get(ctx context.Context, id int) (*Group, error) {
+	return c.Query().Where(group.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *GroupClient) GetX(ctx context.Context, id int) *Group {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *GroupClient) Hooks() []Hook {
+	return c.hooks.Group
+}
+
+// MessageClient is a client for the Message schema.
+type MessageClient struct {
+	config
+}
+
+// NewMessageClient returns a client for the Message from the given config.
+func NewMessageClient(c config) *MessageClient {
+	return &MessageClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `message.Hooks(f(g(h())))`.
+func (c *MessageClient) Use(hooks ...Hook) {
+	c.hooks.Message = append(c.hooks.Message, hooks...)
+}
+
+// Create returns a builder for creating a Message entity.
+func (c *MessageClient) Create() *MessageCreate {
+	mutation := newMessageMutation(c.config, OpCreate)
+	return &MessageCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Message entities.
+func (c *MessageClient) CreateBulk(builders ...*MessageCreate) *MessageCreateBulk {
+	return &MessageCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Message.
+func (c *MessageClient) Update() *MessageUpdate {
+	mutation := newMessageMutation(c.config, OpUpdate)
+	return &MessageUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *MessageClient) UpdateOne(m *Message) *MessageUpdateOne {
+	mutation := newMessageMutation(c.config, OpUpdateOne, withMessage(m))
+	return &MessageUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *MessageClient) UpdateOneID(id int) *MessageUpdateOne {
+	mutation := newMessageMutation(c.config, OpUpdateOne, withMessageID(id))
+	return &MessageUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Message.
+func (c *MessageClient) Delete() *MessageDelete {
+	mutation := newMessageMutation(c.config, OpDelete)
+	return &MessageDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *MessageClient) DeleteOne(m *Message) *MessageDeleteOne {
+	return c.DeleteOneID(m.ID)
+}
+
+// DeleteOne returns a builder for deleting the given entity by its id.
+func (c *MessageClient) DeleteOneID(id int) *MessageDeleteOne {
+	builder := c.Delete().Where(message.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &MessageDeleteOne{builder}
+}
+
+// Query returns a query builder for Message.
+func (c *MessageClient) Query() *MessageQuery {
+	return &MessageQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a Message entity by its id.
+func (c *MessageClient) Get(ctx context.Context, id int) (*Message, error) {
+	return c.Query().Where(message.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *MessageClient) GetX(ctx context.Context, id int) *Message {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryPrivateChat queries the private_chat edge of a Message.
+func (c *MessageClient) QueryPrivateChat(m *Message) *PrivateChatQuery {
+	query := &PrivateChatQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(message.Table, message.FieldID, id),
+			sqlgraph.To(privatechat.Table, privatechat.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, message.PrivateChatTable, message.PrivateChatColumn),
+		)
+		fromV = sqlgraph.Neighbors(m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryOwner queries the owner edge of a Message.
+func (c *MessageClient) QueryOwner(m *Message) *UserQuery {
+	query := &UserQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(message.Table, message.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, message.OwnerTable, message.OwnerColumn),
+		)
+		fromV = sqlgraph.Neighbors(m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *MessageClient) Hooks() []Hook {
+	return c.hooks.Message
 }
 
 // PostClient is a client for the Post schema.
@@ -331,6 +765,234 @@ func (c *PostClient) QueryOwner(po *Post) *UserQuery {
 // Hooks returns the client hooks.
 func (c *PostClient) Hooks() []Hook {
 	return c.hooks.Post
+}
+
+// PrivateChatClient is a client for the PrivateChat schema.
+type PrivateChatClient struct {
+	config
+}
+
+// NewPrivateChatClient returns a client for the PrivateChat from the given config.
+func NewPrivateChatClient(c config) *PrivateChatClient {
+	return &PrivateChatClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `privatechat.Hooks(f(g(h())))`.
+func (c *PrivateChatClient) Use(hooks ...Hook) {
+	c.hooks.PrivateChat = append(c.hooks.PrivateChat, hooks...)
+}
+
+// Create returns a builder for creating a PrivateChat entity.
+func (c *PrivateChatClient) Create() *PrivateChatCreate {
+	mutation := newPrivateChatMutation(c.config, OpCreate)
+	return &PrivateChatCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of PrivateChat entities.
+func (c *PrivateChatClient) CreateBulk(builders ...*PrivateChatCreate) *PrivateChatCreateBulk {
+	return &PrivateChatCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for PrivateChat.
+func (c *PrivateChatClient) Update() *PrivateChatUpdate {
+	mutation := newPrivateChatMutation(c.config, OpUpdate)
+	return &PrivateChatUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *PrivateChatClient) UpdateOne(pc *PrivateChat) *PrivateChatUpdateOne {
+	mutation := newPrivateChatMutation(c.config, OpUpdateOne, withPrivateChat(pc))
+	return &PrivateChatUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *PrivateChatClient) UpdateOneID(id int) *PrivateChatUpdateOne {
+	mutation := newPrivateChatMutation(c.config, OpUpdateOne, withPrivateChatID(id))
+	return &PrivateChatUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for PrivateChat.
+func (c *PrivateChatClient) Delete() *PrivateChatDelete {
+	mutation := newPrivateChatMutation(c.config, OpDelete)
+	return &PrivateChatDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *PrivateChatClient) DeleteOne(pc *PrivateChat) *PrivateChatDeleteOne {
+	return c.DeleteOneID(pc.ID)
+}
+
+// DeleteOne returns a builder for deleting the given entity by its id.
+func (c *PrivateChatClient) DeleteOneID(id int) *PrivateChatDeleteOne {
+	builder := c.Delete().Where(privatechat.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &PrivateChatDeleteOne{builder}
+}
+
+// Query returns a query builder for PrivateChat.
+func (c *PrivateChatClient) Query() *PrivateChatQuery {
+	return &PrivateChatQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a PrivateChat entity by its id.
+func (c *PrivateChatClient) Get(ctx context.Context, id int) (*PrivateChat, error) {
+	return c.Query().Where(privatechat.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *PrivateChatClient) GetX(ctx context.Context, id int) *PrivateChat {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QuerySender queries the sender edge of a PrivateChat.
+func (c *PrivateChatClient) QuerySender(pc *PrivateChat) *UserQuery {
+	query := &UserQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := pc.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(privatechat.Table, privatechat.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, privatechat.SenderTable, privatechat.SenderColumn),
+		)
+		fromV = sqlgraph.Neighbors(pc.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryReceiver queries the receiver edge of a PrivateChat.
+func (c *PrivateChatClient) QueryReceiver(pc *PrivateChat) *UserQuery {
+	query := &UserQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := pc.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(privatechat.Table, privatechat.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, privatechat.ReceiverTable, privatechat.ReceiverColumn),
+		)
+		fromV = sqlgraph.Neighbors(pc.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryChats queries the chats edge of a PrivateChat.
+func (c *PrivateChatClient) QueryChats(pc *PrivateChat) *MessageQuery {
+	query := &MessageQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := pc.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(privatechat.Table, privatechat.FieldID, id),
+			sqlgraph.To(message.Table, message.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, privatechat.ChatsTable, privatechat.ChatsColumn),
+		)
+		fromV = sqlgraph.Neighbors(pc.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *PrivateChatClient) Hooks() []Hook {
+	return c.hooks.PrivateChat
+}
+
+// PublicChatClient is a client for the PublicChat schema.
+type PublicChatClient struct {
+	config
+}
+
+// NewPublicChatClient returns a client for the PublicChat from the given config.
+func NewPublicChatClient(c config) *PublicChatClient {
+	return &PublicChatClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `publicchat.Hooks(f(g(h())))`.
+func (c *PublicChatClient) Use(hooks ...Hook) {
+	c.hooks.PublicChat = append(c.hooks.PublicChat, hooks...)
+}
+
+// Create returns a builder for creating a PublicChat entity.
+func (c *PublicChatClient) Create() *PublicChatCreate {
+	mutation := newPublicChatMutation(c.config, OpCreate)
+	return &PublicChatCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of PublicChat entities.
+func (c *PublicChatClient) CreateBulk(builders ...*PublicChatCreate) *PublicChatCreateBulk {
+	return &PublicChatCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for PublicChat.
+func (c *PublicChatClient) Update() *PublicChatUpdate {
+	mutation := newPublicChatMutation(c.config, OpUpdate)
+	return &PublicChatUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *PublicChatClient) UpdateOne(pc *PublicChat) *PublicChatUpdateOne {
+	mutation := newPublicChatMutation(c.config, OpUpdateOne, withPublicChat(pc))
+	return &PublicChatUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *PublicChatClient) UpdateOneID(id int) *PublicChatUpdateOne {
+	mutation := newPublicChatMutation(c.config, OpUpdateOne, withPublicChatID(id))
+	return &PublicChatUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for PublicChat.
+func (c *PublicChatClient) Delete() *PublicChatDelete {
+	mutation := newPublicChatMutation(c.config, OpDelete)
+	return &PublicChatDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *PublicChatClient) DeleteOne(pc *PublicChat) *PublicChatDeleteOne {
+	return c.DeleteOneID(pc.ID)
+}
+
+// DeleteOne returns a builder for deleting the given entity by its id.
+func (c *PublicChatClient) DeleteOneID(id int) *PublicChatDeleteOne {
+	builder := c.Delete().Where(publicchat.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &PublicChatDeleteOne{builder}
+}
+
+// Query returns a query builder for PublicChat.
+func (c *PublicChatClient) Query() *PublicChatQuery {
+	return &PublicChatQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a PublicChat entity by its id.
+func (c *PublicChatClient) Get(ctx context.Context, id int) (*PublicChat, error) {
+	return c.Query().Where(publicchat.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *PublicChatClient) GetX(ctx context.Context, id int) *PublicChat {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *PublicChatClient) Hooks() []Hook {
+	return c.hooks.PublicChat
 }
 
 // UserClient is a client for the User schema.
@@ -459,6 +1121,54 @@ func (c *UserClient) QueryFollowing(u *User) *UserQuery {
 			sqlgraph.From(user.Table, user.FieldID, id),
 			sqlgraph.To(user.Table, user.FieldID),
 			sqlgraph.Edge(sqlgraph.M2M, false, user.FollowingTable, user.FollowingPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QuerySenderPvChat queries the sender_pv_chat edge of a User.
+func (c *UserClient) QuerySenderPvChat(u *User) *PrivateChatQuery {
+	query := &PrivateChatQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(privatechat.Table, privatechat.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.SenderPvChatTable, user.SenderPvChatColumn),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryReceiverPvChat queries the receiver_pv_chat edge of a User.
+func (c *UserClient) QueryReceiverPvChat(u *User) *PrivateChatQuery {
+	query := &PrivateChatQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(privatechat.Table, privatechat.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.ReceiverPvChatTable, user.ReceiverPvChatColumn),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryMessages queries the messages edge of a User.
+func (c *UserClient) QueryMessages(u *User) *MessageQuery {
+	query := &MessageQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(message.Table, message.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.MessagesTable, user.MessagesColumn),
 		)
 		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
 		return fromV, nil

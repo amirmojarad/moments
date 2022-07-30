@@ -47,9 +47,15 @@ type UserEdges struct {
 	Followers []*User `json:"followers,omitempty"`
 	// Following holds the value of the following edge.
 	Following []*User `json:"following,omitempty"`
+	// SenderPvChat holds the value of the sender_pv_chat edge.
+	SenderPvChat []*PrivateChat `json:"sender_pv_chat,omitempty"`
+	// ReceiverPvChat holds the value of the receiver_pv_chat edge.
+	ReceiverPvChat []*PrivateChat `json:"receiver_pv_chat,omitempty"`
+	// Messages holds the value of the messages edge.
+	Messages []*Message `json:"messages,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [3]bool
+	loadedTypes [6]bool
 }
 
 // PostsOrErr returns the Posts value or an error if the edge
@@ -77,6 +83,33 @@ func (e UserEdges) FollowingOrErr() ([]*User, error) {
 		return e.Following, nil
 	}
 	return nil, &NotLoadedError{edge: "following"}
+}
+
+// SenderPvChatOrErr returns the SenderPvChat value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) SenderPvChatOrErr() ([]*PrivateChat, error) {
+	if e.loadedTypes[3] {
+		return e.SenderPvChat, nil
+	}
+	return nil, &NotLoadedError{edge: "sender_pv_chat"}
+}
+
+// ReceiverPvChatOrErr returns the ReceiverPvChat value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) ReceiverPvChatOrErr() ([]*PrivateChat, error) {
+	if e.loadedTypes[4] {
+		return e.ReceiverPvChat, nil
+	}
+	return nil, &NotLoadedError{edge: "receiver_pv_chat"}
+}
+
+// MessagesOrErr returns the Messages value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) MessagesOrErr() ([]*Message, error) {
+	if e.loadedTypes[5] {
+		return e.Messages, nil
+	}
+	return nil, &NotLoadedError{edge: "messages"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -187,6 +220,21 @@ func (u *User) QueryFollowers() *UserQuery {
 // QueryFollowing queries the "following" edge of the User entity.
 func (u *User) QueryFollowing() *UserQuery {
 	return (&UserClient{config: u.config}).QueryFollowing(u)
+}
+
+// QuerySenderPvChat queries the "sender_pv_chat" edge of the User entity.
+func (u *User) QuerySenderPvChat() *PrivateChatQuery {
+	return (&UserClient{config: u.config}).QuerySenderPvChat(u)
+}
+
+// QueryReceiverPvChat queries the "receiver_pv_chat" edge of the User entity.
+func (u *User) QueryReceiverPvChat() *PrivateChatQuery {
+	return (&UserClient{config: u.config}).QueryReceiverPvChat(u)
+}
+
+// QueryMessages queries the "messages" edge of the User entity.
+func (u *User) QueryMessages() *MessageQuery {
+	return (&UserClient{config: u.config}).QueryMessages(u)
 }
 
 // Update returns a builder for updating this User.
