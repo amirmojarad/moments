@@ -116,6 +116,13 @@ func Likes(v uint64) predicate.Post {
 	})
 }
 
+// LinkURL applies equality check predicate on the "link_url" field. It's identical to LinkURLEQ.
+func LinkURL(v string) predicate.Post {
+	return predicate.Post(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldLinkURL), v))
+	})
+}
+
 // CreatedDateEQ applies the EQ predicate on the "created_date" field.
 func CreatedDateEQ(v time.Time) predicate.Post {
 	return predicate.Post(func(s *sql.Selector) {
@@ -556,6 +563,131 @@ func LikesIsNil() predicate.Post {
 func LikesNotNil() predicate.Post {
 	return predicate.Post(func(s *sql.Selector) {
 		s.Where(sql.NotNull(s.C(FieldLikes)))
+	})
+}
+
+// LinkURLEQ applies the EQ predicate on the "link_url" field.
+func LinkURLEQ(v string) predicate.Post {
+	return predicate.Post(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldLinkURL), v))
+	})
+}
+
+// LinkURLNEQ applies the NEQ predicate on the "link_url" field.
+func LinkURLNEQ(v string) predicate.Post {
+	return predicate.Post(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldLinkURL), v))
+	})
+}
+
+// LinkURLIn applies the In predicate on the "link_url" field.
+func LinkURLIn(vs ...string) predicate.Post {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Post(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldLinkURL), v...))
+	})
+}
+
+// LinkURLNotIn applies the NotIn predicate on the "link_url" field.
+func LinkURLNotIn(vs ...string) predicate.Post {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Post(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldLinkURL), v...))
+	})
+}
+
+// LinkURLGT applies the GT predicate on the "link_url" field.
+func LinkURLGT(v string) predicate.Post {
+	return predicate.Post(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldLinkURL), v))
+	})
+}
+
+// LinkURLGTE applies the GTE predicate on the "link_url" field.
+func LinkURLGTE(v string) predicate.Post {
+	return predicate.Post(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldLinkURL), v))
+	})
+}
+
+// LinkURLLT applies the LT predicate on the "link_url" field.
+func LinkURLLT(v string) predicate.Post {
+	return predicate.Post(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldLinkURL), v))
+	})
+}
+
+// LinkURLLTE applies the LTE predicate on the "link_url" field.
+func LinkURLLTE(v string) predicate.Post {
+	return predicate.Post(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldLinkURL), v))
+	})
+}
+
+// LinkURLContains applies the Contains predicate on the "link_url" field.
+func LinkURLContains(v string) predicate.Post {
+	return predicate.Post(func(s *sql.Selector) {
+		s.Where(sql.Contains(s.C(FieldLinkURL), v))
+	})
+}
+
+// LinkURLHasPrefix applies the HasPrefix predicate on the "link_url" field.
+func LinkURLHasPrefix(v string) predicate.Post {
+	return predicate.Post(func(s *sql.Selector) {
+		s.Where(sql.HasPrefix(s.C(FieldLinkURL), v))
+	})
+}
+
+// LinkURLHasSuffix applies the HasSuffix predicate on the "link_url" field.
+func LinkURLHasSuffix(v string) predicate.Post {
+	return predicate.Post(func(s *sql.Selector) {
+		s.Where(sql.HasSuffix(s.C(FieldLinkURL), v))
+	})
+}
+
+// LinkURLIsNil applies the IsNil predicate on the "link_url" field.
+func LinkURLIsNil() predicate.Post {
+	return predicate.Post(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldLinkURL)))
+	})
+}
+
+// LinkURLNotNil applies the NotNil predicate on the "link_url" field.
+func LinkURLNotNil() predicate.Post {
+	return predicate.Post(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldLinkURL)))
+	})
+}
+
+// LinkURLEqualFold applies the EqualFold predicate on the "link_url" field.
+func LinkURLEqualFold(v string) predicate.Post {
+	return predicate.Post(func(s *sql.Selector) {
+		s.Where(sql.EqualFold(s.C(FieldLinkURL), v))
+	})
+}
+
+// LinkURLContainsFold applies the ContainsFold predicate on the "link_url" field.
+func LinkURLContainsFold(v string) predicate.Post {
+	return predicate.Post(func(s *sql.Selector) {
+		s.Where(sql.ContainsFold(s.C(FieldLinkURL), v))
 	})
 }
 

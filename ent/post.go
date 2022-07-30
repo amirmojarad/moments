@@ -27,6 +27,8 @@ type Post struct {
 	PlainText string `json:"plain_text,omitempty"`
 	// Likes holds the value of the "likes" field.
 	Likes uint64 `json:"likes,omitempty"`
+	// LinkURL holds the value of the "link_url" field.
+	LinkURL string `json:"link_url,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the PostQuery when eager-loading is set.
 	Edges      PostEdges `json:"edges"`
@@ -63,7 +65,7 @@ func (*Post) scanValues(columns []string) ([]interface{}, error) {
 		switch columns[i] {
 		case post.FieldID, post.FieldLikes:
 			values[i] = new(sql.NullInt64)
-		case post.FieldPlainText:
+		case post.FieldPlainText, post.FieldLinkURL:
 			values[i] = new(sql.NullString)
 		case post.FieldCreatedDate, post.FieldUpdatedDate, post.FieldDeletedDate:
 			values[i] = new(sql.NullTime)
@@ -121,6 +123,12 @@ func (po *Post) assignValues(columns []string, values []interface{}) error {
 			} else if value.Valid {
 				po.Likes = uint64(value.Int64)
 			}
+		case post.FieldLinkURL:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field link_url", values[i])
+			} else if value.Valid {
+				po.LinkURL = value.String
+			}
 		case post.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field user_posts", value)
@@ -177,6 +185,9 @@ func (po *Post) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("likes=")
 	builder.WriteString(fmt.Sprintf("%v", po.Likes))
+	builder.WriteString(", ")
+	builder.WriteString("link_url=")
+	builder.WriteString(po.LinkURL)
 	builder.WriteByte(')')
 	return builder.String()
 }

@@ -110,6 +110,26 @@ func (pu *PostUpdate) ClearLikes() *PostUpdate {
 	return pu
 }
 
+// SetLinkURL sets the "link_url" field.
+func (pu *PostUpdate) SetLinkURL(s string) *PostUpdate {
+	pu.mutation.SetLinkURL(s)
+	return pu
+}
+
+// SetNillableLinkURL sets the "link_url" field if the given value is not nil.
+func (pu *PostUpdate) SetNillableLinkURL(s *string) *PostUpdate {
+	if s != nil {
+		pu.SetLinkURL(*s)
+	}
+	return pu
+}
+
+// ClearLinkURL clears the value of the "link_url" field.
+func (pu *PostUpdate) ClearLinkURL() *PostUpdate {
+	pu.mutation.ClearLinkURL()
+	return pu
+}
+
 // SetOwnerID sets the "owner" edge to the User entity by ID.
 func (pu *PostUpdate) SetOwnerID(id int) *PostUpdate {
 	pu.mutation.SetOwnerID(id)
@@ -266,6 +286,19 @@ func (pu *PostUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: post.FieldLikes,
 		})
 	}
+	if value, ok := pu.mutation.LinkURL(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: post.FieldLinkURL,
+		})
+	}
+	if pu.mutation.LinkURLCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: post.FieldLinkURL,
+		})
+	}
 	if pu.mutation.OwnerCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -398,6 +431,26 @@ func (puo *PostUpdateOne) AddLikes(u int64) *PostUpdateOne {
 // ClearLikes clears the value of the "likes" field.
 func (puo *PostUpdateOne) ClearLikes() *PostUpdateOne {
 	puo.mutation.ClearLikes()
+	return puo
+}
+
+// SetLinkURL sets the "link_url" field.
+func (puo *PostUpdateOne) SetLinkURL(s string) *PostUpdateOne {
+	puo.mutation.SetLinkURL(s)
+	return puo
+}
+
+// SetNillableLinkURL sets the "link_url" field if the given value is not nil.
+func (puo *PostUpdateOne) SetNillableLinkURL(s *string) *PostUpdateOne {
+	if s != nil {
+		puo.SetLinkURL(*s)
+	}
+	return puo
+}
+
+// ClearLinkURL clears the value of the "link_url" field.
+func (puo *PostUpdateOne) ClearLinkURL() *PostUpdateOne {
+	puo.mutation.ClearLinkURL()
 	return puo
 }
 
@@ -585,6 +638,19 @@ func (puo *PostUpdateOne) sqlSave(ctx context.Context) (_node *Post, err error) 
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeUint64,
 			Column: post.FieldLikes,
+		})
+	}
+	if value, ok := puo.mutation.LinkURL(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: post.FieldLinkURL,
+		})
+	}
+	if puo.mutation.LinkURLCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: post.FieldLinkURL,
 		})
 	}
 	if puo.mutation.OwnerCleared() {

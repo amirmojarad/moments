@@ -21,6 +21,8 @@ const (
 	FieldPlainText = "plain_text"
 	// FieldLikes holds the string denoting the likes field in the database.
 	FieldLikes = "likes"
+	// FieldLinkURL holds the string denoting the link_url field in the database.
+	FieldLinkURL = "link_url"
 	// EdgeOwner holds the string denoting the owner edge name in mutations.
 	EdgeOwner = "owner"
 	// Table holds the table name of the post in the database.
@@ -42,6 +44,7 @@ var Columns = []string{
 	FieldDeletedDate,
 	FieldPlainText,
 	FieldLikes,
+	FieldLinkURL,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "posts"

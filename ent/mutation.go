@@ -24,9 +24,259 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
+	TypeFile = "File"
 	TypePost = "Post"
 	TypeUser = "User"
 )
+
+// FileMutation represents an operation that mutates the File nodes in the graph.
+type FileMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *int
+	clearedFields map[string]struct{}
+	done          bool
+	oldValue      func(context.Context) (*File, error)
+	predicates    []predicate.File
+}
+
+var _ ent.Mutation = (*FileMutation)(nil)
+
+// fileOption allows management of the mutation configuration using functional options.
+type fileOption func(*FileMutation)
+
+// newFileMutation creates new mutation for the File entity.
+func newFileMutation(c config, op Op, opts ...fileOption) *FileMutation {
+	m := &FileMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeFile,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withFileID sets the ID field of the mutation.
+func withFileID(id int) fileOption {
+	return func(m *FileMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *File
+		)
+		m.oldValue = func(ctx context.Context) (*File, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().File.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withFile sets the old File of the mutation.
+func withFile(node *File) fileOption {
+	return func(m *FileMutation) {
+		m.oldValue = func(context.Context) (*File, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m FileMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m FileMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *FileMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *FileMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().File.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// Where appends a list predicates to the FileMutation builder.
+func (m *FileMutation) Where(ps ...predicate.File) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// Op returns the operation name.
+func (m *FileMutation) Op() Op {
+	return m.op
+}
+
+// Type returns the node type of this mutation (File).
+func (m *FileMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *FileMutation) Fields() []string {
+	fields := make([]string, 0, 0)
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *FileMutation) Field(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *FileMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	return nil, fmt.Errorf("unknown File field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *FileMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown File field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *FileMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *FileMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *FileMutation) AddField(name string, value ent.Value) error {
+	return fmt.Errorf("unknown File numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *FileMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *FileMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *FileMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown File nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *FileMutation) ResetField(name string) error {
+	return fmt.Errorf("unknown File field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *FileMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *FileMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *FileMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *FileMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *FileMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *FileMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *FileMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown File unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *FileMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown File edge %s", name)
+}
 
 // PostMutation represents an operation that mutates the Post nodes in the graph.
 type PostMutation struct {
@@ -40,6 +290,7 @@ type PostMutation struct {
 	plain_text    *string
 	likes         *uint64
 	addlikes      *int64
+	link_url      *string
 	clearedFields map[string]struct{}
 	owner         *int
 	clearedowner  bool
@@ -373,6 +624,55 @@ func (m *PostMutation) ResetLikes() {
 	delete(m.clearedFields, post.FieldLikes)
 }
 
+// SetLinkURL sets the "link_url" field.
+func (m *PostMutation) SetLinkURL(s string) {
+	m.link_url = &s
+}
+
+// LinkURL returns the value of the "link_url" field in the mutation.
+func (m *PostMutation) LinkURL() (r string, exists bool) {
+	v := m.link_url
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLinkURL returns the old "link_url" field's value of the Post entity.
+// If the Post object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PostMutation) OldLinkURL(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLinkURL is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLinkURL requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLinkURL: %w", err)
+	}
+	return oldValue.LinkURL, nil
+}
+
+// ClearLinkURL clears the value of the "link_url" field.
+func (m *PostMutation) ClearLinkURL() {
+	m.link_url = nil
+	m.clearedFields[post.FieldLinkURL] = struct{}{}
+}
+
+// LinkURLCleared returns if the "link_url" field was cleared in this mutation.
+func (m *PostMutation) LinkURLCleared() bool {
+	_, ok := m.clearedFields[post.FieldLinkURL]
+	return ok
+}
+
+// ResetLinkURL resets all changes to the "link_url" field.
+func (m *PostMutation) ResetLinkURL() {
+	m.link_url = nil
+	delete(m.clearedFields, post.FieldLinkURL)
+}
+
 // SetOwnerID sets the "owner" edge to the User entity by id.
 func (m *PostMutation) SetOwnerID(id int) {
 	m.owner = &id
@@ -431,7 +731,7 @@ func (m *PostMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *PostMutation) Fields() []string {
-	fields := make([]string, 0, 5)
+	fields := make([]string, 0, 6)
 	if m.created_date != nil {
 		fields = append(fields, post.FieldCreatedDate)
 	}
@@ -446,6 +746,9 @@ func (m *PostMutation) Fields() []string {
 	}
 	if m.likes != nil {
 		fields = append(fields, post.FieldLikes)
+	}
+	if m.link_url != nil {
+		fields = append(fields, post.FieldLinkURL)
 	}
 	return fields
 }
@@ -465,6 +768,8 @@ func (m *PostMutation) Field(name string) (ent.Value, bool) {
 		return m.PlainText()
 	case post.FieldLikes:
 		return m.Likes()
+	case post.FieldLinkURL:
+		return m.LinkURL()
 	}
 	return nil, false
 }
@@ -484,6 +789,8 @@ func (m *PostMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldPlainText(ctx)
 	case post.FieldLikes:
 		return m.OldLikes(ctx)
+	case post.FieldLinkURL:
+		return m.OldLinkURL(ctx)
 	}
 	return nil, fmt.Errorf("unknown Post field %s", name)
 }
@@ -527,6 +834,13 @@ func (m *PostMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetLikes(v)
+		return nil
+	case post.FieldLinkURL:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLinkURL(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Post field %s", name)
@@ -579,6 +893,9 @@ func (m *PostMutation) ClearedFields() []string {
 	if m.FieldCleared(post.FieldLikes) {
 		fields = append(fields, post.FieldLikes)
 	}
+	if m.FieldCleared(post.FieldLinkURL) {
+		fields = append(fields, post.FieldLinkURL)
+	}
 	return fields
 }
 
@@ -598,6 +915,9 @@ func (m *PostMutation) ClearField(name string) error {
 		return nil
 	case post.FieldLikes:
 		m.ClearLikes()
+		return nil
+	case post.FieldLinkURL:
+		m.ClearLinkURL()
 		return nil
 	}
 	return fmt.Errorf("unknown Post nullable field %s", name)
@@ -621,6 +941,9 @@ func (m *PostMutation) ResetField(name string) error {
 		return nil
 	case post.FieldLikes:
 		m.ResetLikes()
+		return nil
+	case post.FieldLinkURL:
+		m.ResetLinkURL()
 		return nil
 	}
 	return fmt.Errorf("unknown Post field %s", name)
@@ -705,25 +1028,31 @@ func (m *PostMutation) ResetEdge(name string) error {
 // UserMutation represents an operation that mutates the User nodes in the graph.
 type UserMutation struct {
 	config
-	op            Op
-	typ           string
-	id            *int
-	created_date  *time.Time
-	updated_date  *time.Time
-	deleted_date  *time.Time
-	username      *string
-	email         *string
-	password      *string
-	full_name     *string
-	is_admin      *bool
-	is_staff      *bool
-	clearedFields map[string]struct{}
-	posts         map[int]struct{}
-	removedposts  map[int]struct{}
-	clearedposts  bool
-	done          bool
-	oldValue      func(context.Context) (*User, error)
-	predicates    []predicate.User
+	op               Op
+	typ              string
+	id               *int
+	created_date     *time.Time
+	updated_date     *time.Time
+	deleted_date     *time.Time
+	username         *string
+	email            *string
+	password         *string
+	full_name        *string
+	is_admin         *bool
+	is_staff         *bool
+	clearedFields    map[string]struct{}
+	posts            map[int]struct{}
+	removedposts     map[int]struct{}
+	clearedposts     bool
+	followers        map[int]struct{}
+	removedfollowers map[int]struct{}
+	clearedfollowers bool
+	following        map[int]struct{}
+	removedfollowing map[int]struct{}
+	clearedfollowing bool
+	done             bool
+	oldValue         func(context.Context) (*User, error)
+	predicates       []predicate.User
 }
 
 var _ ent.Mutation = (*UserMutation)(nil)
@@ -1254,6 +1583,114 @@ func (m *UserMutation) ResetPosts() {
 	m.removedposts = nil
 }
 
+// AddFollowerIDs adds the "followers" edge to the User entity by ids.
+func (m *UserMutation) AddFollowerIDs(ids ...int) {
+	if m.followers == nil {
+		m.followers = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.followers[ids[i]] = struct{}{}
+	}
+}
+
+// ClearFollowers clears the "followers" edge to the User entity.
+func (m *UserMutation) ClearFollowers() {
+	m.clearedfollowers = true
+}
+
+// FollowersCleared reports if the "followers" edge to the User entity was cleared.
+func (m *UserMutation) FollowersCleared() bool {
+	return m.clearedfollowers
+}
+
+// RemoveFollowerIDs removes the "followers" edge to the User entity by IDs.
+func (m *UserMutation) RemoveFollowerIDs(ids ...int) {
+	if m.removedfollowers == nil {
+		m.removedfollowers = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.followers, ids[i])
+		m.removedfollowers[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedFollowers returns the removed IDs of the "followers" edge to the User entity.
+func (m *UserMutation) RemovedFollowersIDs() (ids []int) {
+	for id := range m.removedfollowers {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// FollowersIDs returns the "followers" edge IDs in the mutation.
+func (m *UserMutation) FollowersIDs() (ids []int) {
+	for id := range m.followers {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetFollowers resets all changes to the "followers" edge.
+func (m *UserMutation) ResetFollowers() {
+	m.followers = nil
+	m.clearedfollowers = false
+	m.removedfollowers = nil
+}
+
+// AddFollowingIDs adds the "following" edge to the User entity by ids.
+func (m *UserMutation) AddFollowingIDs(ids ...int) {
+	if m.following == nil {
+		m.following = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.following[ids[i]] = struct{}{}
+	}
+}
+
+// ClearFollowing clears the "following" edge to the User entity.
+func (m *UserMutation) ClearFollowing() {
+	m.clearedfollowing = true
+}
+
+// FollowingCleared reports if the "following" edge to the User entity was cleared.
+func (m *UserMutation) FollowingCleared() bool {
+	return m.clearedfollowing
+}
+
+// RemoveFollowingIDs removes the "following" edge to the User entity by IDs.
+func (m *UserMutation) RemoveFollowingIDs(ids ...int) {
+	if m.removedfollowing == nil {
+		m.removedfollowing = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.following, ids[i])
+		m.removedfollowing[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedFollowing returns the removed IDs of the "following" edge to the User entity.
+func (m *UserMutation) RemovedFollowingIDs() (ids []int) {
+	for id := range m.removedfollowing {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// FollowingIDs returns the "following" edge IDs in the mutation.
+func (m *UserMutation) FollowingIDs() (ids []int) {
+	for id := range m.following {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetFollowing resets all changes to the "following" edge.
+func (m *UserMutation) ResetFollowing() {
+	m.following = nil
+	m.clearedfollowing = false
+	m.removedfollowing = nil
+}
+
 // Where appends a list predicates to the UserMutation builder.
 func (m *UserMutation) Where(ps ...predicate.User) {
 	m.predicates = append(m.predicates, ps...)
@@ -1535,9 +1972,15 @@ func (m *UserMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *UserMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 3)
 	if m.posts != nil {
 		edges = append(edges, user.EdgePosts)
+	}
+	if m.followers != nil {
+		edges = append(edges, user.EdgeFollowers)
+	}
+	if m.following != nil {
+		edges = append(edges, user.EdgeFollowing)
 	}
 	return edges
 }
@@ -1552,15 +1995,33 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeFollowers:
+		ids := make([]ent.Value, 0, len(m.followers))
+		for id := range m.followers {
+			ids = append(ids, id)
+		}
+		return ids
+	case user.EdgeFollowing:
+		ids := make([]ent.Value, 0, len(m.following))
+		for id := range m.following {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UserMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 3)
 	if m.removedposts != nil {
 		edges = append(edges, user.EdgePosts)
+	}
+	if m.removedfollowers != nil {
+		edges = append(edges, user.EdgeFollowers)
+	}
+	if m.removedfollowing != nil {
+		edges = append(edges, user.EdgeFollowing)
 	}
 	return edges
 }
@@ -1575,15 +2036,33 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeFollowers:
+		ids := make([]ent.Value, 0, len(m.removedfollowers))
+		for id := range m.removedfollowers {
+			ids = append(ids, id)
+		}
+		return ids
+	case user.EdgeFollowing:
+		ids := make([]ent.Value, 0, len(m.removedfollowing))
+		for id := range m.removedfollowing {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *UserMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 3)
 	if m.clearedposts {
 		edges = append(edges, user.EdgePosts)
+	}
+	if m.clearedfollowers {
+		edges = append(edges, user.EdgeFollowers)
+	}
+	if m.clearedfollowing {
+		edges = append(edges, user.EdgeFollowing)
 	}
 	return edges
 }
@@ -1594,6 +2073,10 @@ func (m *UserMutation) EdgeCleared(name string) bool {
 	switch name {
 	case user.EdgePosts:
 		return m.clearedposts
+	case user.EdgeFollowers:
+		return m.clearedfollowers
+	case user.EdgeFollowing:
+		return m.clearedfollowing
 	}
 	return false
 }
@@ -1612,6 +2095,12 @@ func (m *UserMutation) ResetEdge(name string) error {
 	switch name {
 	case user.EdgePosts:
 		m.ResetPosts()
+		return nil
+	case user.EdgeFollowers:
+		m.ResetFollowers()
+		return nil
+	case user.EdgeFollowing:
+		m.ResetFollowing()
 		return nil
 	}
 	return fmt.Errorf("unknown User edge %s", name)

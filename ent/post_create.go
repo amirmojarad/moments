@@ -83,6 +83,20 @@ func (pc *PostCreate) SetNillableLikes(u *uint64) *PostCreate {
 	return pc
 }
 
+// SetLinkURL sets the "link_url" field.
+func (pc *PostCreate) SetLinkURL(s string) *PostCreate {
+	pc.mutation.SetLinkURL(s)
+	return pc
+}
+
+// SetNillableLinkURL sets the "link_url" field if the given value is not nil.
+func (pc *PostCreate) SetNillableLinkURL(s *string) *PostCreate {
+	if s != nil {
+		pc.SetLinkURL(*s)
+	}
+	return pc
+}
+
 // SetOwnerID sets the "owner" edge to the User entity by ID.
 func (pc *PostCreate) SetOwnerID(id int) *PostCreate {
 	pc.mutation.SetOwnerID(id)
@@ -270,6 +284,14 @@ func (pc *PostCreate) createSpec() (*Post, *sqlgraph.CreateSpec) {
 			Column: post.FieldLikes,
 		})
 		_node.Likes = value
+	}
+	if value, ok := pc.mutation.LinkURL(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: post.FieldLinkURL,
+		})
+		_node.LinkURL = value
 	}
 	if nodes := pc.mutation.OwnerIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

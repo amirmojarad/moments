@@ -8,6 +8,16 @@ import (
 )
 
 var (
+	// FilesColumns holds the columns for the "files" table.
+	FilesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+	}
+	// FilesTable holds the schema information for the "files" table.
+	FilesTable = &schema.Table{
+		Name:       "files",
+		Columns:    FilesColumns,
+		PrimaryKey: []*schema.Column{FilesColumns[0]},
+	}
 	// PostsColumns holds the columns for the "posts" table.
 	PostsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -16,6 +26,7 @@ var (
 		{Name: "deleted_date", Type: field.TypeTime, Nullable: true},
 		{Name: "plain_text", Type: field.TypeString, Size: 2147483647},
 		{Name: "likes", Type: field.TypeUint64, Nullable: true, Default: 0},
+		{Name: "link_url", Type: field.TypeString, Nullable: true},
 		{Name: "user_posts", Type: field.TypeInt, Nullable: true},
 	}
 	// PostsTable holds the schema information for the "posts" table.
@@ -26,9 +37,9 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "posts_users_posts",
-				Columns:    []*schema.Column{PostsColumns[6]},
+				Columns:    []*schema.Column{PostsColumns[7]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.SetNull,
+				OnDelete:   schema.Cascade,
 			},
 		},
 	}
@@ -51,13 +62,42 @@ var (
 		Columns:    UsersColumns,
 		PrimaryKey: []*schema.Column{UsersColumns[0]},
 	}
+	// UserFollowingColumns holds the columns for the "user_following" table.
+	UserFollowingColumns = []*schema.Column{
+		{Name: "user_id", Type: field.TypeInt},
+		{Name: "follower_id", Type: field.TypeInt},
+	}
+	// UserFollowingTable holds the schema information for the "user_following" table.
+	UserFollowingTable = &schema.Table{
+		Name:       "user_following",
+		Columns:    UserFollowingColumns,
+		PrimaryKey: []*schema.Column{UserFollowingColumns[0], UserFollowingColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "user_following_user_id",
+				Columns:    []*schema.Column{UserFollowingColumns[0]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "user_following_follower_id",
+				Columns:    []*schema.Column{UserFollowingColumns[1]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		FilesTable,
 		PostsTable,
 		UsersTable,
+		UserFollowingTable,
 	}
 )
 
 func init() {
 	PostsTable.ForeignKeys[0].RefTable = UsersTable
+	UserFollowingTable.ForeignKeys[0].RefTable = UsersTable
+	UserFollowingTable.ForeignKeys[1].RefTable = UsersTable
 }

@@ -22,8 +22,6 @@ func (Post) Fields() []ent.Field {
 	return []ent.Field{
 		field.Text("plain_text"),
 		field.Uint64("likes").Default(0).Optional(),
-		field.String("image_url").Optional(),
-		field.String("attached_file_url").Optional(),
 		field.String("link_url").Optional(),
 	}
 }

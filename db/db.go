@@ -129,7 +129,7 @@ func NewTestDB() (*DatabaseConnection, context.CancelFunc) {
 		log.Error().Err(err).Msg("error while opening database connection")
 	}
 	client = (*client).Debug()
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	if err := client.Schema.WriteTo(ctx, os.Stdout); err != nil {
 		log.Error().Err(err).Msg("failed printing schema changes")
 	}
