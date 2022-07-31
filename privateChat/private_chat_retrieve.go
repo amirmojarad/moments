@@ -1,33 +1,18 @@
 package privateChat
 
 import (
-	"github.com/rs/zerolog/log"
 	"moments/db"
 	"moments/ent"
-	"moments/ent/privatechat"
 )
 
-func GetPrivateChatBySender(connection *db.DatabaseConnection, sender *ent.User) ([]*ent.PrivateChat, error) {
-	return sender.QuerySenderPvChat().All(*connection.Ctx)
+func GetPrivateChatByID(connection *db.DatabaseConnection, pvChatID int) (*ent.PrivateChat, error) {
+	return connection.Client.PrivateChat.Get(*connection.Ctx, pvChatID)
 }
 
-func GetPrivateChatByID(connection *db.DatabaseConnection, u *ent.User, pvChatID int) (*ent.PrivateChat, error) {
-	receiver, err := u.QueryReceiverPvChat().Where(privatechat.IDEQ(pvChatID)).Only(*connection.Ctx)
-	if err != nil {
-		log.Error().Err(err).Msg("error while fetching receiver in private chats")
-		return nil, err
-	}
-	if receiver != nil {
-		return receiver, nil
-	}
+func GetPrivateChatFirstUser(connection *db.DatabaseConnection, pvChat *ent.PrivateChat) (*ent.User, error) {
+	return pvChat.QueryFirstUser().Only(*connection.Ctx)
+}
 
-	sender, err := u.QuerySenderPvChat().Where(privatechat.IDEQ(pvChatID)).Only(*connection.Ctx)
-	if err != nil {
-		log.Error().Err(err).Msg("error while fetching sender in private chats")
-		return sender, err
-	}
-	if receiver != nil {
-		return sender, nil
-	}
-	return nil, err
+func GetPrivateChatSecondUser(connection *db.DatabaseConnection, pvChat *ent.PrivateChat) (*ent.User, error) {
+	return pvChat.QuerySecondUser().Only(*connection.Ctx)
 }

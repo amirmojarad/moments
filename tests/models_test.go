@@ -268,7 +268,7 @@ func TestUnfollow(t *testing.T) {
 
 }
 
-func TestCreatePrivateChat(t *testing.T) {
+func TestPvMessage(t *testing.T) {
 	dbc, cancel := db.NewTestDB()
 	defer dbc.Client.Close()
 	defer cancel()
@@ -286,14 +286,18 @@ func TestCreatePrivateChat(t *testing.T) {
 	assert.Nil(t, err)
 	defer deleteUser(t, dbc, secondUser)
 
-	createdPrivateChat, err := privateChat.CreatePrivateChat(dbc, firstUser, secondUser)
+	pvMessage, err := privateChat.CreatePrivateChat(dbc, firstUser, secondUser)
 	assert.Nil(t, err)
-	assert.NotNil(t, createdPrivateChat)
+
+	ownerUser, err := privateChat.GetPrivateChatFirstUser(dbc, pvMessage)
+	receiverUser, err := privateChat.GetPrivateChatSecondUser(dbc, pvMessage)
+
+	assert.Equal(t, firstUser.ID, ownerUser.ID)
+	assert.Equal(t, secondUser.ID, receiverUser.ID)
+
 }
 
-// TestDuplicateCreatePrivateChat tests raising error when want to create 2 private chat for same users
-// as first is SENDER and second is RECEIVER
-func TestDuplicateCreatePrivateChat(t *testing.T) {
+func TestDuplicatePvMessage(t *testing.T) {
 	dbc, cancel := db.NewTestDB()
 	defer dbc.Client.Close()
 	defer cancel()
@@ -311,52 +315,12 @@ func TestDuplicateCreatePrivateChat(t *testing.T) {
 	assert.Nil(t, err)
 	defer deleteUser(t, dbc, secondUser)
 
-	createdPrivateChat, err := privateChat.CreatePrivateChat(dbc, firstUser, secondUser)
+	firstPvMessage, err := privateChat.CreatePrivateChat(dbc, firstUser, secondUser)
 	assert.Nil(t, err)
-	assert.NotNil(t, createdPrivateChat)
+	assert.NotNil(t, firstPvMessage)
 
-	createdPrivateChat, err = privateChat.CreatePrivateChat(dbc, firstUser, secondUser)
+	secondPvMessage, err := privateChat.CreatePrivateChat(dbc, firstUser, secondUser)
 	assert.NotNil(t, err)
-	assert.Nil(t, createdPrivateChat)
-
-}
-
-// TestDuplicateCreatePrivateChat tests raising error when want to create 2 private chat for same users
-// as first is SENDER and second is RECEIVER
-func TestCreateTwoPVChatsForOneUser(t *testing.T) {
-	dbc, cancel := db.NewTestDB()
-	defer dbc.Client.Close()
-	defer cancel()
-
-	firstUser := createTestUser(t, dbc)
-	defer deleteUser(t, dbc, firstUser)
-
-	su := &ent.User{
-		Username: "secondTestUser",
-		Email:    "secondTestUser@email.com",
-		Password: "testpass123",
-	}
-
-	secondUser, err := user.CreateUser(dbc, su)
-	assert.Nil(t, err)
-	defer deleteUser(t, dbc, secondUser)
-
-	tu := &ent.User{
-		Username: "thirdUser",
-		Email:    "thirdUser@email.com",
-		Password: "testpass123",
-	}
-
-	thirdUser, err := user.CreateUser(dbc, tu)
-	assert.Nil(t, err)
-	defer deleteUser(t, dbc, thirdUser)
-
-	createdPrivateChat, err := privateChat.CreatePrivateChat(dbc, firstUser, secondUser)
-	assert.Nil(t, err)
-	assert.NotNil(t, createdPrivateChat)
-
-	createdPrivateChat, err = privateChat.CreatePrivateChat(dbc, firstUser, thirdUser)
-	assert.Nil(t, err)
-	assert.NotNil(t, createdPrivateChat)
+	assert.Nil(t, secondPvMessage)
 
 }

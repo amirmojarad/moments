@@ -35,12 +35,10 @@ const (
 	EdgeFollowers = "followers"
 	// EdgeFollowing holds the string denoting the following edge name in mutations.
 	EdgeFollowing = "following"
-	// EdgeSenderPvChat holds the string denoting the sender_pv_chat edge name in mutations.
-	EdgeSenderPvChat = "sender_pv_chat"
-	// EdgeReceiverPvChat holds the string denoting the receiver_pv_chat edge name in mutations.
-	EdgeReceiverPvChat = "receiver_pv_chat"
-	// EdgeMessages holds the string denoting the messages edge name in mutations.
-	EdgeMessages = "messages"
+	// EdgeMyPvChats holds the string denoting the my_pv_chats edge name in mutations.
+	EdgeMyPvChats = "my_pv_chats"
+	// EdgeOtherPvChats holds the string denoting the other_pv_chats edge name in mutations.
+	EdgeOtherPvChats = "other_pv_chats"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// PostsTable is the table that holds the posts relation/edge.
@@ -54,27 +52,20 @@ const (
 	FollowersTable = "user_following"
 	// FollowingTable is the table that holds the following relation/edge. The primary key declared below.
 	FollowingTable = "user_following"
-	// SenderPvChatTable is the table that holds the sender_pv_chat relation/edge.
-	SenderPvChatTable = "private_chats"
-	// SenderPvChatInverseTable is the table name for the PrivateChat entity.
+	// MyPvChatsTable is the table that holds the my_pv_chats relation/edge.
+	MyPvChatsTable = "private_chats"
+	// MyPvChatsInverseTable is the table name for the PrivateChat entity.
 	// It exists in this package in order to avoid circular dependency with the "privatechat" package.
-	SenderPvChatInverseTable = "private_chats"
-	// SenderPvChatColumn is the table column denoting the sender_pv_chat relation/edge.
-	SenderPvChatColumn = "sender_id"
-	// ReceiverPvChatTable is the table that holds the receiver_pv_chat relation/edge.
-	ReceiverPvChatTable = "private_chats"
-	// ReceiverPvChatInverseTable is the table name for the PrivateChat entity.
+	MyPvChatsInverseTable = "private_chats"
+	// MyPvChatsColumn is the table column denoting the my_pv_chats relation/edge.
+	MyPvChatsColumn = "first_user_id"
+	// OtherPvChatsTable is the table that holds the other_pv_chats relation/edge.
+	OtherPvChatsTable = "private_chats"
+	// OtherPvChatsInverseTable is the table name for the PrivateChat entity.
 	// It exists in this package in order to avoid circular dependency with the "privatechat" package.
-	ReceiverPvChatInverseTable = "private_chats"
-	// ReceiverPvChatColumn is the table column denoting the receiver_pv_chat relation/edge.
-	ReceiverPvChatColumn = "receiver_id"
-	// MessagesTable is the table that holds the messages relation/edge.
-	MessagesTable = "messages"
-	// MessagesInverseTable is the table name for the Message entity.
-	// It exists in this package in order to avoid circular dependency with the "message" package.
-	MessagesInverseTable = "messages"
-	// MessagesColumn is the table column denoting the messages relation/edge.
-	MessagesColumn = "user_messages"
+	OtherPvChatsInverseTable = "private_chats"
+	// OtherPvChatsColumn is the table column denoting the other_pv_chats relation/edge.
+	OtherPvChatsColumn = "second_user_id"
 )
 
 // Columns holds all SQL columns for user fields.

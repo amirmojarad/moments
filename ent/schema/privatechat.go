@@ -12,32 +12,25 @@ type PrivateChat struct {
 	ent.Schema
 }
 
-func (PrivateChat) Mixin() []ent.Mixin {
-	return []ent.Mixin{
-		BaseModel{},
-	}
-}
-
 // Fields of the PrivateChat.
 func (PrivateChat) Fields() []ent.Field {
 	return []ent.Field{
-		field.Int("receiver_id"),
-		field.Int("sender_id"),
+		field.Int("first_user_id").Optional(),
+		field.Int("second_user_id").Optional(),
 	}
+
 }
 
 // Edges of the PrivateChat.
 func (PrivateChat) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.From("sender", User.Type).Ref("sender_pv_chat").Required().Unique().Field("sender_id"),
-		edge.From("receiver", User.Type).Ref("receiver_pv_chat").Required().Unique().Field("receiver_id"),
-		edge.To("chats", Message.Type),
+		edge.From("first_user", User.Type).Ref("my_pv_chats").Unique().Field("first_user_id"),
+		edge.From("second_user", User.Type).Ref("other_pv_chats").Unique().Field("second_user_id"),
 	}
 }
 
 func (PrivateChat) Indexes() []ent.Index {
 	return []ent.Index{
-		index.Fields("receiver_id", "sender_id").Unique(),
-		index.Fields("sender_id", "receiver_id").Unique(),
+		index.Fields("first_user_id", "second_user_id").Unique(),
 	}
 }

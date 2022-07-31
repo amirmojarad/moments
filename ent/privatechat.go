@@ -7,7 +7,6 @@ import (
 	"moments/ent/privatechat"
 	"moments/ent/user"
 	"strings"
-	"time"
 
 	"entgo.io/ent/dialect/sql"
 )
@@ -17,16 +16,10 @@ type PrivateChat struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
-	// CreatedDate holds the value of the "created_date" field.
-	CreatedDate time.Time `json:"created_date,omitempty"`
-	// UpdatedDate holds the value of the "updated_date" field.
-	UpdatedDate time.Time `json:"updated_date,omitempty"`
-	// DeletedDate holds the value of the "deleted_date" field.
-	DeletedDate *time.Time `json:"deleted_date,omitempty"`
-	// ReceiverID holds the value of the "receiver_id" field.
-	ReceiverID int `json:"receiver_id,omitempty"`
-	// SenderID holds the value of the "sender_id" field.
-	SenderID int `json:"sender_id,omitempty"`
+	// FirstUserID holds the value of the "first_user_id" field.
+	FirstUserID int `json:"first_user_id,omitempty"`
+	// SecondUserID holds the value of the "second_user_id" field.
+	SecondUserID int `json:"second_user_id,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the PrivateChatQuery when eager-loading is set.
 	Edges PrivateChatEdges `json:"edges"`
@@ -34,52 +27,41 @@ type PrivateChat struct {
 
 // PrivateChatEdges holds the relations/edges for other nodes in the graph.
 type PrivateChatEdges struct {
-	// Sender holds the value of the sender edge.
-	Sender *User `json:"sender,omitempty"`
-	// Receiver holds the value of the receiver edge.
-	Receiver *User `json:"receiver,omitempty"`
-	// Chats holds the value of the chats edge.
-	Chats []*Message `json:"chats,omitempty"`
+	// FirstUser holds the value of the first_user edge.
+	FirstUser *User `json:"first_user,omitempty"`
+	// SecondUser holds the value of the second_user edge.
+	SecondUser *User `json:"second_user,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [3]bool
+	loadedTypes [2]bool
 }
 
-// SenderOrErr returns the Sender value or an error if the edge
+// FirstUserOrErr returns the FirstUser value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e PrivateChatEdges) SenderOrErr() (*User, error) {
+func (e PrivateChatEdges) FirstUserOrErr() (*User, error) {
 	if e.loadedTypes[0] {
-		if e.Sender == nil {
-			// The edge sender was loaded in eager-loading,
+		if e.FirstUser == nil {
+			// The edge first_user was loaded in eager-loading,
 			// but was not found.
 			return nil, &NotFoundError{label: user.Label}
 		}
-		return e.Sender, nil
+		return e.FirstUser, nil
 	}
-	return nil, &NotLoadedError{edge: "sender"}
+	return nil, &NotLoadedError{edge: "first_user"}
 }
 
-// ReceiverOrErr returns the Receiver value or an error if the edge
+// SecondUserOrErr returns the SecondUser value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e PrivateChatEdges) ReceiverOrErr() (*User, error) {
+func (e PrivateChatEdges) SecondUserOrErr() (*User, error) {
 	if e.loadedTypes[1] {
-		if e.Receiver == nil {
-			// The edge receiver was loaded in eager-loading,
+		if e.SecondUser == nil {
+			// The edge second_user was loaded in eager-loading,
 			// but was not found.
 			return nil, &NotFoundError{label: user.Label}
 		}
-		return e.Receiver, nil
+		return e.SecondUser, nil
 	}
-	return nil, &NotLoadedError{edge: "receiver"}
-}
-
-// ChatsOrErr returns the Chats value or an error if the edge
-// was not loaded in eager-loading.
-func (e PrivateChatEdges) ChatsOrErr() ([]*Message, error) {
-	if e.loadedTypes[2] {
-		return e.Chats, nil
-	}
-	return nil, &NotLoadedError{edge: "chats"}
+	return nil, &NotLoadedError{edge: "second_user"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -87,10 +69,8 @@ func (*PrivateChat) scanValues(columns []string) ([]interface{}, error) {
 	values := make([]interface{}, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case privatechat.FieldID, privatechat.FieldReceiverID, privatechat.FieldSenderID:
+		case privatechat.FieldID, privatechat.FieldFirstUserID, privatechat.FieldSecondUserID:
 			values[i] = new(sql.NullInt64)
-		case privatechat.FieldCreatedDate, privatechat.FieldUpdatedDate, privatechat.FieldDeletedDate:
-			values[i] = new(sql.NullTime)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type PrivateChat", columns[i])
 		}
@@ -112,55 +92,31 @@ func (pc *PrivateChat) assignValues(columns []string, values []interface{}) erro
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
 			pc.ID = int(value.Int64)
-		case privatechat.FieldCreatedDate:
-			if value, ok := values[i].(*sql.NullTime); !ok {
-				return fmt.Errorf("unexpected type %T for field created_date", values[i])
-			} else if value.Valid {
-				pc.CreatedDate = value.Time
-			}
-		case privatechat.FieldUpdatedDate:
-			if value, ok := values[i].(*sql.NullTime); !ok {
-				return fmt.Errorf("unexpected type %T for field updated_date", values[i])
-			} else if value.Valid {
-				pc.UpdatedDate = value.Time
-			}
-		case privatechat.FieldDeletedDate:
-			if value, ok := values[i].(*sql.NullTime); !ok {
-				return fmt.Errorf("unexpected type %T for field deleted_date", values[i])
-			} else if value.Valid {
-				pc.DeletedDate = new(time.Time)
-				*pc.DeletedDate = value.Time
-			}
-		case privatechat.FieldReceiverID:
+		case privatechat.FieldFirstUserID:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field receiver_id", values[i])
+				return fmt.Errorf("unexpected type %T for field first_user_id", values[i])
 			} else if value.Valid {
-				pc.ReceiverID = int(value.Int64)
+				pc.FirstUserID = int(value.Int64)
 			}
-		case privatechat.FieldSenderID:
+		case privatechat.FieldSecondUserID:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field sender_id", values[i])
+				return fmt.Errorf("unexpected type %T for field second_user_id", values[i])
 			} else if value.Valid {
-				pc.SenderID = int(value.Int64)
+				pc.SecondUserID = int(value.Int64)
 			}
 		}
 	}
 	return nil
 }
 
-// QuerySender queries the "sender" edge of the PrivateChat entity.
-func (pc *PrivateChat) QuerySender() *UserQuery {
-	return (&PrivateChatClient{config: pc.config}).QuerySender(pc)
+// QueryFirstUser queries the "first_user" edge of the PrivateChat entity.
+func (pc *PrivateChat) QueryFirstUser() *UserQuery {
+	return (&PrivateChatClient{config: pc.config}).QueryFirstUser(pc)
 }
 
-// QueryReceiver queries the "receiver" edge of the PrivateChat entity.
-func (pc *PrivateChat) QueryReceiver() *UserQuery {
-	return (&PrivateChatClient{config: pc.config}).QueryReceiver(pc)
-}
-
-// QueryChats queries the "chats" edge of the PrivateChat entity.
-func (pc *PrivateChat) QueryChats() *MessageQuery {
-	return (&PrivateChatClient{config: pc.config}).QueryChats(pc)
+// QuerySecondUser queries the "second_user" edge of the PrivateChat entity.
+func (pc *PrivateChat) QuerySecondUser() *UserQuery {
+	return (&PrivateChatClient{config: pc.config}).QuerySecondUser(pc)
 }
 
 // Update returns a builder for updating this PrivateChat.
@@ -186,22 +142,11 @@ func (pc *PrivateChat) String() string {
 	var builder strings.Builder
 	builder.WriteString("PrivateChat(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", pc.ID))
-	builder.WriteString("created_date=")
-	builder.WriteString(pc.CreatedDate.Format(time.ANSIC))
+	builder.WriteString("first_user_id=")
+	builder.WriteString(fmt.Sprintf("%v", pc.FirstUserID))
 	builder.WriteString(", ")
-	builder.WriteString("updated_date=")
-	builder.WriteString(pc.UpdatedDate.Format(time.ANSIC))
-	builder.WriteString(", ")
-	if v := pc.DeletedDate; v != nil {
-		builder.WriteString("deleted_date=")
-		builder.WriteString(v.Format(time.ANSIC))
-	}
-	builder.WriteString(", ")
-	builder.WriteString("receiver_id=")
-	builder.WriteString(fmt.Sprintf("%v", pc.ReceiverID))
-	builder.WriteString(", ")
-	builder.WriteString("sender_id=")
-	builder.WriteString(fmt.Sprintf("%v", pc.SenderID))
+	builder.WriteString("second_user_id=")
+	builder.WriteString(fmt.Sprintf("%v", pc.SecondUserID))
 	builder.WriteByte(')')
 	return builder.String()
 }

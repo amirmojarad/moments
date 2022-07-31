@@ -4,10 +4,8 @@ package ent
 
 import (
 	"context"
-	"database/sql/driver"
 	"fmt"
 	"math"
-	"moments/ent/message"
 	"moments/ent/predicate"
 	"moments/ent/privatechat"
 	"moments/ent/user"
@@ -27,9 +25,8 @@ type PrivateChatQuery struct {
 	fields     []string
 	predicates []predicate.PrivateChat
 	// eager-loading edges.
-	withSender   *UserQuery
-	withReceiver *UserQuery
-	withChats    *MessageQuery
+	withFirstUser  *UserQuery
+	withSecondUser *UserQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -66,8 +63,8 @@ func (pcq *PrivateChatQuery) Order(o ...OrderFunc) *PrivateChatQuery {
 	return pcq
 }
 
-// QuerySender chains the current query on the "sender" edge.
-func (pcq *PrivateChatQuery) QuerySender() *UserQuery {
+// QueryFirstUser chains the current query on the "first_user" edge.
+func (pcq *PrivateChatQuery) QueryFirstUser() *UserQuery {
 	query := &UserQuery{config: pcq.config}
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := pcq.prepareQuery(ctx); err != nil {
@@ -80,7 +77,7 @@ func (pcq *PrivateChatQuery) QuerySender() *UserQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(privatechat.Table, privatechat.FieldID, selector),
 			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, privatechat.SenderTable, privatechat.SenderColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, privatechat.FirstUserTable, privatechat.FirstUserColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(pcq.driver.Dialect(), step)
 		return fromU, nil
@@ -88,8 +85,8 @@ func (pcq *PrivateChatQuery) QuerySender() *UserQuery {
 	return query
 }
 
-// QueryReceiver chains the current query on the "receiver" edge.
-func (pcq *PrivateChatQuery) QueryReceiver() *UserQuery {
+// QuerySecondUser chains the current query on the "second_user" edge.
+func (pcq *PrivateChatQuery) QuerySecondUser() *UserQuery {
 	query := &UserQuery{config: pcq.config}
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := pcq.prepareQuery(ctx); err != nil {
@@ -102,29 +99,7 @@ func (pcq *PrivateChatQuery) QueryReceiver() *UserQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(privatechat.Table, privatechat.FieldID, selector),
 			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, privatechat.ReceiverTable, privatechat.ReceiverColumn),
-		)
-		fromU = sqlgraph.SetNeighbors(pcq.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
-}
-
-// QueryChats chains the current query on the "chats" edge.
-func (pcq *PrivateChatQuery) QueryChats() *MessageQuery {
-	query := &MessageQuery{config: pcq.config}
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := pcq.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := pcq.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(privatechat.Table, privatechat.FieldID, selector),
-			sqlgraph.To(message.Table, message.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, privatechat.ChatsTable, privatechat.ChatsColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, privatechat.SecondUserTable, privatechat.SecondUserColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(pcq.driver.Dialect(), step)
 		return fromU, nil
@@ -308,14 +283,13 @@ func (pcq *PrivateChatQuery) Clone() *PrivateChatQuery {
 		return nil
 	}
 	return &PrivateChatQuery{
-		config:       pcq.config,
-		limit:        pcq.limit,
-		offset:       pcq.offset,
-		order:        append([]OrderFunc{}, pcq.order...),
-		predicates:   append([]predicate.PrivateChat{}, pcq.predicates...),
-		withSender:   pcq.withSender.Clone(),
-		withReceiver: pcq.withReceiver.Clone(),
-		withChats:    pcq.withChats.Clone(),
+		config:         pcq.config,
+		limit:          pcq.limit,
+		offset:         pcq.offset,
+		order:          append([]OrderFunc{}, pcq.order...),
+		predicates:     append([]predicate.PrivateChat{}, pcq.predicates...),
+		withFirstUser:  pcq.withFirstUser.Clone(),
+		withSecondUser: pcq.withSecondUser.Clone(),
 		// clone intermediate query.
 		sql:    pcq.sql.Clone(),
 		path:   pcq.path,
@@ -323,36 +297,25 @@ func (pcq *PrivateChatQuery) Clone() *PrivateChatQuery {
 	}
 }
 
-// WithSender tells the query-builder to eager-load the nodes that are connected to
-// the "sender" edge. The optional arguments are used to configure the query builder of the edge.
-func (pcq *PrivateChatQuery) WithSender(opts ...func(*UserQuery)) *PrivateChatQuery {
+// WithFirstUser tells the query-builder to eager-load the nodes that are connected to
+// the "first_user" edge. The optional arguments are used to configure the query builder of the edge.
+func (pcq *PrivateChatQuery) WithFirstUser(opts ...func(*UserQuery)) *PrivateChatQuery {
 	query := &UserQuery{config: pcq.config}
 	for _, opt := range opts {
 		opt(query)
 	}
-	pcq.withSender = query
+	pcq.withFirstUser = query
 	return pcq
 }
 
-// WithReceiver tells the query-builder to eager-load the nodes that are connected to
-// the "receiver" edge. The optional arguments are used to configure the query builder of the edge.
-func (pcq *PrivateChatQuery) WithReceiver(opts ...func(*UserQuery)) *PrivateChatQuery {
+// WithSecondUser tells the query-builder to eager-load the nodes that are connected to
+// the "second_user" edge. The optional arguments are used to configure the query builder of the edge.
+func (pcq *PrivateChatQuery) WithSecondUser(opts ...func(*UserQuery)) *PrivateChatQuery {
 	query := &UserQuery{config: pcq.config}
 	for _, opt := range opts {
 		opt(query)
 	}
-	pcq.withReceiver = query
-	return pcq
-}
-
-// WithChats tells the query-builder to eager-load the nodes that are connected to
-// the "chats" edge. The optional arguments are used to configure the query builder of the edge.
-func (pcq *PrivateChatQuery) WithChats(opts ...func(*MessageQuery)) *PrivateChatQuery {
-	query := &MessageQuery{config: pcq.config}
-	for _, opt := range opts {
-		opt(query)
-	}
-	pcq.withChats = query
+	pcq.withSecondUser = query
 	return pcq
 }
 
@@ -362,12 +325,12 @@ func (pcq *PrivateChatQuery) WithChats(opts ...func(*MessageQuery)) *PrivateChat
 // Example:
 //
 //	var v []struct {
-//		CreatedDate time.Time `json:"created_date,omitempty"`
+//		FirstUserID int `json:"first_user_id,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.PrivateChat.Query().
-//		GroupBy(privatechat.FieldCreatedDate).
+//		GroupBy(privatechat.FieldFirstUserID).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 //
@@ -391,11 +354,11 @@ func (pcq *PrivateChatQuery) GroupBy(field string, fields ...string) *PrivateCha
 // Example:
 //
 //	var v []struct {
-//		CreatedDate time.Time `json:"created_date,omitempty"`
+//		FirstUserID int `json:"first_user_id,omitempty"`
 //	}
 //
 //	client.PrivateChat.Query().
-//		Select(privatechat.FieldCreatedDate).
+//		Select(privatechat.FieldFirstUserID).
 //		Scan(ctx, &v)
 //
 func (pcq *PrivateChatQuery) Select(fields ...string) *PrivateChatSelect {
@@ -426,10 +389,9 @@ func (pcq *PrivateChatQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 	var (
 		nodes       = []*PrivateChat{}
 		_spec       = pcq.querySpec()
-		loadedTypes = [3]bool{
-			pcq.withSender != nil,
-			pcq.withReceiver != nil,
-			pcq.withChats != nil,
+		loadedTypes = [2]bool{
+			pcq.withFirstUser != nil,
+			pcq.withSecondUser != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
@@ -451,11 +413,11 @@ func (pcq *PrivateChatQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 		return nodes, nil
 	}
 
-	if query := pcq.withSender; query != nil {
+	if query := pcq.withFirstUser; query != nil {
 		ids := make([]int, 0, len(nodes))
 		nodeids := make(map[int][]*PrivateChat)
 		for i := range nodes {
-			fk := nodes[i].SenderID
+			fk := nodes[i].FirstUserID
 			if _, ok := nodeids[fk]; !ok {
 				ids = append(ids, fk)
 			}
@@ -469,19 +431,19 @@ func (pcq *PrivateChatQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 		for _, n := range neighbors {
 			nodes, ok := nodeids[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "sender_id" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "first_user_id" returned %v`, n.ID)
 			}
 			for i := range nodes {
-				nodes[i].Edges.Sender = n
+				nodes[i].Edges.FirstUser = n
 			}
 		}
 	}
 
-	if query := pcq.withReceiver; query != nil {
+	if query := pcq.withSecondUser; query != nil {
 		ids := make([]int, 0, len(nodes))
 		nodeids := make(map[int][]*PrivateChat)
 		for i := range nodes {
-			fk := nodes[i].ReceiverID
+			fk := nodes[i].SecondUserID
 			if _, ok := nodeids[fk]; !ok {
 				ids = append(ids, fk)
 			}
@@ -495,40 +457,11 @@ func (pcq *PrivateChatQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 		for _, n := range neighbors {
 			nodes, ok := nodeids[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "receiver_id" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "second_user_id" returned %v`, n.ID)
 			}
 			for i := range nodes {
-				nodes[i].Edges.Receiver = n
+				nodes[i].Edges.SecondUser = n
 			}
-		}
-	}
-
-	if query := pcq.withChats; query != nil {
-		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[int]*PrivateChat)
-		for i := range nodes {
-			fks = append(fks, nodes[i].ID)
-			nodeids[nodes[i].ID] = nodes[i]
-			nodes[i].Edges.Chats = []*Message{}
-		}
-		query.withFKs = true
-		query.Where(predicate.Message(func(s *sql.Selector) {
-			s.Where(sql.InValues(privatechat.ChatsColumn, fks...))
-		}))
-		neighbors, err := query.All(ctx)
-		if err != nil {
-			return nil, err
-		}
-		for _, n := range neighbors {
-			fk := n.private_chat_chats
-			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "private_chat_chats" is nil for node %v`, n.ID)
-			}
-			node, ok := nodeids[*fk]
-			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "private_chat_chats" returned %v for node %v`, *fk, n.ID)
-			}
-			node.Edges.Chats = append(node.Edges.Chats, n)
 		}
 	}
 

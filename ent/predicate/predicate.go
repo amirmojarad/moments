@@ -18,9 +18,6 @@ type File func(*sql.Selector)
 // Group is the predicate function for group builders.
 type Group func(*sql.Selector)
 
-// Message is the predicate function for message builders.
-type Message func(*sql.Selector)
-
 // Post is the predicate function for post builders.
 type Post func(*sql.Selector)
 

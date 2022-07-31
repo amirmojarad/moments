@@ -984,25 +984,25 @@ func HasFollowingWith(preds ...predicate.User) predicate.User {
 	})
 }
 
-// HasSenderPvChat applies the HasEdge predicate on the "sender_pv_chat" edge.
-func HasSenderPvChat() predicate.User {
+// HasMyPvChats applies the HasEdge predicate on the "my_pv_chats" edge.
+func HasMyPvChats() predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(SenderPvChatTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, SenderPvChatTable, SenderPvChatColumn),
+			sqlgraph.To(MyPvChatsTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, MyPvChatsTable, MyPvChatsColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasSenderPvChatWith applies the HasEdge predicate on the "sender_pv_chat" edge with a given conditions (other predicates).
-func HasSenderPvChatWith(preds ...predicate.PrivateChat) predicate.User {
+// HasMyPvChatsWith applies the HasEdge predicate on the "my_pv_chats" edge with a given conditions (other predicates).
+func HasMyPvChatsWith(preds ...predicate.PrivateChat) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(SenderPvChatInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, SenderPvChatTable, SenderPvChatColumn),
+			sqlgraph.To(MyPvChatsInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, MyPvChatsTable, MyPvChatsColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
@@ -1012,53 +1012,25 @@ func HasSenderPvChatWith(preds ...predicate.PrivateChat) predicate.User {
 	})
 }
 
-// HasReceiverPvChat applies the HasEdge predicate on the "receiver_pv_chat" edge.
-func HasReceiverPvChat() predicate.User {
+// HasOtherPvChats applies the HasEdge predicate on the "other_pv_chats" edge.
+func HasOtherPvChats() predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(ReceiverPvChatTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, ReceiverPvChatTable, ReceiverPvChatColumn),
+			sqlgraph.To(OtherPvChatsTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, OtherPvChatsTable, OtherPvChatsColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasReceiverPvChatWith applies the HasEdge predicate on the "receiver_pv_chat" edge with a given conditions (other predicates).
-func HasReceiverPvChatWith(preds ...predicate.PrivateChat) predicate.User {
+// HasOtherPvChatsWith applies the HasEdge predicate on the "other_pv_chats" edge with a given conditions (other predicates).
+func HasOtherPvChatsWith(preds ...predicate.PrivateChat) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(ReceiverPvChatInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, ReceiverPvChatTable, ReceiverPvChatColumn),
-		)
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
-}
-
-// HasMessages applies the HasEdge predicate on the "messages" edge.
-func HasMessages() predicate.User {
-	return predicate.User(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(MessagesTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, MessagesTable, MessagesColumn),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasMessagesWith applies the HasEdge predicate on the "messages" edge with a given conditions (other predicates).
-func HasMessagesWith(preds ...predicate.Message) predicate.User {
-	return predicate.User(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(MessagesInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, MessagesTable, MessagesColumn),
+			sqlgraph.To(OtherPvChatsInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, OtherPvChatsTable, OtherPvChatsColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

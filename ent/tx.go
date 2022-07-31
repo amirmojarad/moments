@@ -20,8 +20,6 @@ type Tx struct {
 	File *FileClient
 	// Group is the client for interacting with the Group builders.
 	Group *GroupClient
-	// Message is the client for interacting with the Message builders.
-	Message *MessageClient
 	// Post is the client for interacting with the Post builders.
 	Post *PostClient
 	// PrivateChat is the client for interacting with the PrivateChat builders.
@@ -169,7 +167,6 @@ func (tx *Tx) init() {
 	tx.ChannelPost = NewChannelPostClient(tx.config)
 	tx.File = NewFileClient(tx.config)
 	tx.Group = NewGroupClient(tx.config)
-	tx.Message = NewMessageClient(tx.config)
 	tx.Post = NewPostClient(tx.config)
 	tx.PrivateChat = NewPrivateChatClient(tx.config)
 	tx.PublicChat = NewPublicChatClient(tx.config)

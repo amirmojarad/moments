@@ -13,7 +13,6 @@ import (
 	"moments/ent/channelpost"
 	"moments/ent/file"
 	"moments/ent/group"
-	"moments/ent/message"
 	"moments/ent/post"
 	"moments/ent/privatechat"
 	"moments/ent/publicchat"
@@ -37,8 +36,6 @@ type Client struct {
 	File *FileClient
 	// Group is the client for interacting with the Group builders.
 	Group *GroupClient
-	// Message is the client for interacting with the Message builders.
-	Message *MessageClient
 	// Post is the client for interacting with the Post builders.
 	Post *PostClient
 	// PrivateChat is the client for interacting with the PrivateChat builders.
@@ -64,7 +61,6 @@ func (c *Client) init() {
 	c.ChannelPost = NewChannelPostClient(c.config)
 	c.File = NewFileClient(c.config)
 	c.Group = NewGroupClient(c.config)
-	c.Message = NewMessageClient(c.config)
 	c.Post = NewPostClient(c.config)
 	c.PrivateChat = NewPrivateChatClient(c.config)
 	c.PublicChat = NewPublicChatClient(c.config)
@@ -106,7 +102,6 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		ChannelPost: NewChannelPostClient(cfg),
 		File:        NewFileClient(cfg),
 		Group:       NewGroupClient(cfg),
-		Message:     NewMessageClient(cfg),
 		Post:        NewPostClient(cfg),
 		PrivateChat: NewPrivateChatClient(cfg),
 		PublicChat:  NewPublicChatClient(cfg),
@@ -134,7 +129,6 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		ChannelPost: NewChannelPostClient(cfg),
 		File:        NewFileClient(cfg),
 		Group:       NewGroupClient(cfg),
-		Message:     NewMessageClient(cfg),
 		Post:        NewPostClient(cfg),
 		PrivateChat: NewPrivateChatClient(cfg),
 		PublicChat:  NewPublicChatClient(cfg),
@@ -172,7 +166,6 @@ func (c *Client) Use(hooks ...Hook) {
 	c.ChannelPost.Use(hooks...)
 	c.File.Use(hooks...)
 	c.Group.Use(hooks...)
-	c.Message.Use(hooks...)
 	c.Post.Use(hooks...)
 	c.PrivateChat.Use(hooks...)
 	c.PublicChat.Use(hooks...)
@@ -539,128 +532,6 @@ func (c *GroupClient) Hooks() []Hook {
 	return c.hooks.Group
 }
 
-// MessageClient is a client for the Message schema.
-type MessageClient struct {
-	config
-}
-
-// NewMessageClient returns a client for the Message from the given config.
-func NewMessageClient(c config) *MessageClient {
-	return &MessageClient{config: c}
-}
-
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `message.Hooks(f(g(h())))`.
-func (c *MessageClient) Use(hooks ...Hook) {
-	c.hooks.Message = append(c.hooks.Message, hooks...)
-}
-
-// Create returns a builder for creating a Message entity.
-func (c *MessageClient) Create() *MessageCreate {
-	mutation := newMessageMutation(c.config, OpCreate)
-	return &MessageCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// CreateBulk returns a builder for creating a bulk of Message entities.
-func (c *MessageClient) CreateBulk(builders ...*MessageCreate) *MessageCreateBulk {
-	return &MessageCreateBulk{config: c.config, builders: builders}
-}
-
-// Update returns an update builder for Message.
-func (c *MessageClient) Update() *MessageUpdate {
-	mutation := newMessageMutation(c.config, OpUpdate)
-	return &MessageUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *MessageClient) UpdateOne(m *Message) *MessageUpdateOne {
-	mutation := newMessageMutation(c.config, OpUpdateOne, withMessage(m))
-	return &MessageUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *MessageClient) UpdateOneID(id int) *MessageUpdateOne {
-	mutation := newMessageMutation(c.config, OpUpdateOne, withMessageID(id))
-	return &MessageUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Delete returns a delete builder for Message.
-func (c *MessageClient) Delete() *MessageDelete {
-	mutation := newMessageMutation(c.config, OpDelete)
-	return &MessageDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// DeleteOne returns a builder for deleting the given entity.
-func (c *MessageClient) DeleteOne(m *Message) *MessageDeleteOne {
-	return c.DeleteOneID(m.ID)
-}
-
-// DeleteOne returns a builder for deleting the given entity by its id.
-func (c *MessageClient) DeleteOneID(id int) *MessageDeleteOne {
-	builder := c.Delete().Where(message.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &MessageDeleteOne{builder}
-}
-
-// Query returns a query builder for Message.
-func (c *MessageClient) Query() *MessageQuery {
-	return &MessageQuery{
-		config: c.config,
-	}
-}
-
-// Get returns a Message entity by its id.
-func (c *MessageClient) Get(ctx context.Context, id int) (*Message, error) {
-	return c.Query().Where(message.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *MessageClient) GetX(ctx context.Context, id int) *Message {
-	obj, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return obj
-}
-
-// QueryPrivateChat queries the private_chat edge of a Message.
-func (c *MessageClient) QueryPrivateChat(m *Message) *PrivateChatQuery {
-	query := &PrivateChatQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
-		id := m.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(message.Table, message.FieldID, id),
-			sqlgraph.To(privatechat.Table, privatechat.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, message.PrivateChatTable, message.PrivateChatColumn),
-		)
-		fromV = sqlgraph.Neighbors(m.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryOwner queries the owner edge of a Message.
-func (c *MessageClient) QueryOwner(m *Message) *UserQuery {
-	query := &UserQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
-		id := m.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(message.Table, message.FieldID, id),
-			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, message.OwnerTable, message.OwnerColumn),
-		)
-		fromV = sqlgraph.Neighbors(m.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// Hooks returns the client hooks.
-func (c *MessageClient) Hooks() []Hook {
-	return c.hooks.Message
-}
-
 // PostClient is a client for the Post schema.
 type PostClient struct {
 	config
@@ -852,15 +723,15 @@ func (c *PrivateChatClient) GetX(ctx context.Context, id int) *PrivateChat {
 	return obj
 }
 
-// QuerySender queries the sender edge of a PrivateChat.
-func (c *PrivateChatClient) QuerySender(pc *PrivateChat) *UserQuery {
+// QueryFirstUser queries the first_user edge of a PrivateChat.
+func (c *PrivateChatClient) QueryFirstUser(pc *PrivateChat) *UserQuery {
 	query := &UserQuery{config: c.config}
 	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
 		id := pc.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(privatechat.Table, privatechat.FieldID, id),
 			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, privatechat.SenderTable, privatechat.SenderColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, privatechat.FirstUserTable, privatechat.FirstUserColumn),
 		)
 		fromV = sqlgraph.Neighbors(pc.driver.Dialect(), step)
 		return fromV, nil
@@ -868,31 +739,15 @@ func (c *PrivateChatClient) QuerySender(pc *PrivateChat) *UserQuery {
 	return query
 }
 
-// QueryReceiver queries the receiver edge of a PrivateChat.
-func (c *PrivateChatClient) QueryReceiver(pc *PrivateChat) *UserQuery {
+// QuerySecondUser queries the second_user edge of a PrivateChat.
+func (c *PrivateChatClient) QuerySecondUser(pc *PrivateChat) *UserQuery {
 	query := &UserQuery{config: c.config}
 	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
 		id := pc.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(privatechat.Table, privatechat.FieldID, id),
 			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, privatechat.ReceiverTable, privatechat.ReceiverColumn),
-		)
-		fromV = sqlgraph.Neighbors(pc.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryChats queries the chats edge of a PrivateChat.
-func (c *PrivateChatClient) QueryChats(pc *PrivateChat) *MessageQuery {
-	query := &MessageQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
-		id := pc.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(privatechat.Table, privatechat.FieldID, id),
-			sqlgraph.To(message.Table, message.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, privatechat.ChatsTable, privatechat.ChatsColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, privatechat.SecondUserTable, privatechat.SecondUserColumn),
 		)
 		fromV = sqlgraph.Neighbors(pc.driver.Dialect(), step)
 		return fromV, nil
@@ -1128,15 +983,15 @@ func (c *UserClient) QueryFollowing(u *User) *UserQuery {
 	return query
 }
 
-// QuerySenderPvChat queries the sender_pv_chat edge of a User.
-func (c *UserClient) QuerySenderPvChat(u *User) *PrivateChatQuery {
+// QueryMyPvChats queries the my_pv_chats edge of a User.
+func (c *UserClient) QueryMyPvChats(u *User) *PrivateChatQuery {
 	query := &PrivateChatQuery{config: c.config}
 	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
 		id := u.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, id),
 			sqlgraph.To(privatechat.Table, privatechat.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, user.SenderPvChatTable, user.SenderPvChatColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.MyPvChatsTable, user.MyPvChatsColumn),
 		)
 		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
 		return fromV, nil
@@ -1144,31 +999,15 @@ func (c *UserClient) QuerySenderPvChat(u *User) *PrivateChatQuery {
 	return query
 }
 
-// QueryReceiverPvChat queries the receiver_pv_chat edge of a User.
-func (c *UserClient) QueryReceiverPvChat(u *User) *PrivateChatQuery {
+// QueryOtherPvChats queries the other_pv_chats edge of a User.
+func (c *UserClient) QueryOtherPvChats(u *User) *PrivateChatQuery {
 	query := &PrivateChatQuery{config: c.config}
 	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
 		id := u.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, id),
 			sqlgraph.To(privatechat.Table, privatechat.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, user.ReceiverPvChatTable, user.ReceiverPvChatColumn),
-		)
-		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryMessages queries the messages edge of a User.
-func (c *UserClient) QueryMessages(u *User) *MessageQuery {
-	query := &MessageQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
-		id := u.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(user.Table, user.FieldID, id),
-			sqlgraph.To(message.Table, message.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, user.MessagesTable, user.MessagesColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.OtherPvChatsTable, user.OtherPvChatsColumn),
 		)
 		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
 		return fromV, nil

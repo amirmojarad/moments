@@ -10,7 +10,6 @@ import (
 	"moments/ent/channelpost"
 	"moments/ent/file"
 	"moments/ent/group"
-	"moments/ent/message"
 	"moments/ent/post"
 	"moments/ent/privatechat"
 	"moments/ent/publicchat"
@@ -43,7 +42,6 @@ func columnChecker(table string) func(string) error {
 		channelpost.Table: channelpost.ValidColumn,
 		file.Table:        file.ValidColumn,
 		group.Table:       group.ValidColumn,
-		message.Table:     message.ValidColumn,
 		post.Table:        post.ValidColumn,
 		privatechat.Table: privatechat.ValidColumn,
 		publicchat.Table:  publicchat.ValidColumn,

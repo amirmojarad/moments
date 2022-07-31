@@ -4,12 +4,9 @@ package ent
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"moments/ent/message"
 	"moments/ent/privatechat"
 	"moments/ent/user"
-	"time"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -22,83 +19,42 @@ type PrivateChatCreate struct {
 	hooks    []Hook
 }
 
-// SetCreatedDate sets the "created_date" field.
-func (pcc *PrivateChatCreate) SetCreatedDate(t time.Time) *PrivateChatCreate {
-	pcc.mutation.SetCreatedDate(t)
+// SetFirstUserID sets the "first_user_id" field.
+func (pcc *PrivateChatCreate) SetFirstUserID(i int) *PrivateChatCreate {
+	pcc.mutation.SetFirstUserID(i)
 	return pcc
 }
 
-// SetNillableCreatedDate sets the "created_date" field if the given value is not nil.
-func (pcc *PrivateChatCreate) SetNillableCreatedDate(t *time.Time) *PrivateChatCreate {
-	if t != nil {
-		pcc.SetCreatedDate(*t)
+// SetNillableFirstUserID sets the "first_user_id" field if the given value is not nil.
+func (pcc *PrivateChatCreate) SetNillableFirstUserID(i *int) *PrivateChatCreate {
+	if i != nil {
+		pcc.SetFirstUserID(*i)
 	}
 	return pcc
 }
 
-// SetUpdatedDate sets the "updated_date" field.
-func (pcc *PrivateChatCreate) SetUpdatedDate(t time.Time) *PrivateChatCreate {
-	pcc.mutation.SetUpdatedDate(t)
+// SetSecondUserID sets the "second_user_id" field.
+func (pcc *PrivateChatCreate) SetSecondUserID(i int) *PrivateChatCreate {
+	pcc.mutation.SetSecondUserID(i)
 	return pcc
 }
 
-// SetNillableUpdatedDate sets the "updated_date" field if the given value is not nil.
-func (pcc *PrivateChatCreate) SetNillableUpdatedDate(t *time.Time) *PrivateChatCreate {
-	if t != nil {
-		pcc.SetUpdatedDate(*t)
+// SetNillableSecondUserID sets the "second_user_id" field if the given value is not nil.
+func (pcc *PrivateChatCreate) SetNillableSecondUserID(i *int) *PrivateChatCreate {
+	if i != nil {
+		pcc.SetSecondUserID(*i)
 	}
 	return pcc
 }
 
-// SetDeletedDate sets the "deleted_date" field.
-func (pcc *PrivateChatCreate) SetDeletedDate(t time.Time) *PrivateChatCreate {
-	pcc.mutation.SetDeletedDate(t)
-	return pcc
+// SetFirstUser sets the "first_user" edge to the User entity.
+func (pcc *PrivateChatCreate) SetFirstUser(u *User) *PrivateChatCreate {
+	return pcc.SetFirstUserID(u.ID)
 }
 
-// SetNillableDeletedDate sets the "deleted_date" field if the given value is not nil.
-func (pcc *PrivateChatCreate) SetNillableDeletedDate(t *time.Time) *PrivateChatCreate {
-	if t != nil {
-		pcc.SetDeletedDate(*t)
-	}
-	return pcc
-}
-
-// SetReceiverID sets the "receiver_id" field.
-func (pcc *PrivateChatCreate) SetReceiverID(i int) *PrivateChatCreate {
-	pcc.mutation.SetReceiverID(i)
-	return pcc
-}
-
-// SetSenderID sets the "sender_id" field.
-func (pcc *PrivateChatCreate) SetSenderID(i int) *PrivateChatCreate {
-	pcc.mutation.SetSenderID(i)
-	return pcc
-}
-
-// SetSender sets the "sender" edge to the User entity.
-func (pcc *PrivateChatCreate) SetSender(u *User) *PrivateChatCreate {
-	return pcc.SetSenderID(u.ID)
-}
-
-// SetReceiver sets the "receiver" edge to the User entity.
-func (pcc *PrivateChatCreate) SetReceiver(u *User) *PrivateChatCreate {
-	return pcc.SetReceiverID(u.ID)
-}
-
-// AddChatIDs adds the "chats" edge to the Message entity by IDs.
-func (pcc *PrivateChatCreate) AddChatIDs(ids ...int) *PrivateChatCreate {
-	pcc.mutation.AddChatIDs(ids...)
-	return pcc
-}
-
-// AddChats adds the "chats" edges to the Message entity.
-func (pcc *PrivateChatCreate) AddChats(m ...*Message) *PrivateChatCreate {
-	ids := make([]int, len(m))
-	for i := range m {
-		ids[i] = m[i].ID
-	}
-	return pcc.AddChatIDs(ids...)
+// SetSecondUser sets the "second_user" edge to the User entity.
+func (pcc *PrivateChatCreate) SetSecondUser(u *User) *PrivateChatCreate {
+	return pcc.SetSecondUserID(u.ID)
 }
 
 // Mutation returns the PrivateChatMutation object of the builder.
@@ -112,7 +68,6 @@ func (pcc *PrivateChatCreate) Save(ctx context.Context) (*PrivateChat, error) {
 		err  error
 		node *PrivateChat
 	)
-	pcc.defaults()
 	if len(pcc.hooks) == 0 {
 		if err = pcc.check(); err != nil {
 			return nil, err
@@ -176,38 +131,8 @@ func (pcc *PrivateChatCreate) ExecX(ctx context.Context) {
 	}
 }
 
-// defaults sets the default values of the builder before save.
-func (pcc *PrivateChatCreate) defaults() {
-	if _, ok := pcc.mutation.CreatedDate(); !ok {
-		v := privatechat.DefaultCreatedDate
-		pcc.mutation.SetCreatedDate(v)
-	}
-	if _, ok := pcc.mutation.UpdatedDate(); !ok {
-		v := privatechat.DefaultUpdatedDate
-		pcc.mutation.SetUpdatedDate(v)
-	}
-}
-
 // check runs all checks and user-defined validators on the builder.
 func (pcc *PrivateChatCreate) check() error {
-	if _, ok := pcc.mutation.CreatedDate(); !ok {
-		return &ValidationError{Name: "created_date", err: errors.New(`ent: missing required field "PrivateChat.created_date"`)}
-	}
-	if _, ok := pcc.mutation.UpdatedDate(); !ok {
-		return &ValidationError{Name: "updated_date", err: errors.New(`ent: missing required field "PrivateChat.updated_date"`)}
-	}
-	if _, ok := pcc.mutation.ReceiverID(); !ok {
-		return &ValidationError{Name: "receiver_id", err: errors.New(`ent: missing required field "PrivateChat.receiver_id"`)}
-	}
-	if _, ok := pcc.mutation.SenderID(); !ok {
-		return &ValidationError{Name: "sender_id", err: errors.New(`ent: missing required field "PrivateChat.sender_id"`)}
-	}
-	if _, ok := pcc.mutation.SenderID(); !ok {
-		return &ValidationError{Name: "sender", err: errors.New(`ent: missing required edge "PrivateChat.sender"`)}
-	}
-	if _, ok := pcc.mutation.ReceiverID(); !ok {
-		return &ValidationError{Name: "receiver", err: errors.New(`ent: missing required edge "PrivateChat.receiver"`)}
-	}
 	return nil
 }
 
@@ -235,36 +160,12 @@ func (pcc *PrivateChatCreate) createSpec() (*PrivateChat, *sqlgraph.CreateSpec) 
 			},
 		}
 	)
-	if value, ok := pcc.mutation.CreatedDate(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeTime,
-			Value:  value,
-			Column: privatechat.FieldCreatedDate,
-		})
-		_node.CreatedDate = value
-	}
-	if value, ok := pcc.mutation.UpdatedDate(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeTime,
-			Value:  value,
-			Column: privatechat.FieldUpdatedDate,
-		})
-		_node.UpdatedDate = value
-	}
-	if value, ok := pcc.mutation.DeletedDate(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeTime,
-			Value:  value,
-			Column: privatechat.FieldDeletedDate,
-		})
-		_node.DeletedDate = &value
-	}
-	if nodes := pcc.mutation.SenderIDs(); len(nodes) > 0 {
+	if nodes := pcc.mutation.FirstUserIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   privatechat.SenderTable,
-			Columns: []string{privatechat.SenderColumn},
+			Table:   privatechat.FirstUserTable,
+			Columns: []string{privatechat.FirstUserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -276,15 +177,15 @@ func (pcc *PrivateChatCreate) createSpec() (*PrivateChat, *sqlgraph.CreateSpec) 
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.SenderID = nodes[0]
+		_node.FirstUserID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := pcc.mutation.ReceiverIDs(); len(nodes) > 0 {
+	if nodes := pcc.mutation.SecondUserIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   privatechat.ReceiverTable,
-			Columns: []string{privatechat.ReceiverColumn},
+			Table:   privatechat.SecondUserTable,
+			Columns: []string{privatechat.SecondUserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -296,26 +197,7 @@ func (pcc *PrivateChatCreate) createSpec() (*PrivateChat, *sqlgraph.CreateSpec) 
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.ReceiverID = nodes[0]
-		_spec.Edges = append(_spec.Edges, edge)
-	}
-	if nodes := pcc.mutation.ChatsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   privatechat.ChatsTable,
-			Columns: []string{privatechat.ChatsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: message.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
+		_node.SecondUserID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
@@ -335,7 +217,6 @@ func (pccb *PrivateChatCreateBulk) Save(ctx context.Context) ([]*PrivateChat, er
 	for i := range pccb.builders {
 		func(i int, root context.Context) {
 			builder := pccb.builders[i]
-			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*PrivateChatMutation)
 				if !ok {

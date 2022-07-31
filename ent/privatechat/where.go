@@ -4,7 +4,6 @@ package privatechat
 
 import (
 	"moments/ent/predicate"
-	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -81,57 +80,36 @@ func IDLTE(id int) predicate.PrivateChat {
 	})
 }
 
-// CreatedDate applies equality check predicate on the "created_date" field. It's identical to CreatedDateEQ.
-func CreatedDate(v time.Time) predicate.PrivateChat {
+// FirstUserID applies equality check predicate on the "first_user_id" field. It's identical to FirstUserIDEQ.
+func FirstUserID(v int) predicate.PrivateChat {
 	return predicate.PrivateChat(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldCreatedDate), v))
+		s.Where(sql.EQ(s.C(FieldFirstUserID), v))
 	})
 }
 
-// UpdatedDate applies equality check predicate on the "updated_date" field. It's identical to UpdatedDateEQ.
-func UpdatedDate(v time.Time) predicate.PrivateChat {
+// SecondUserID applies equality check predicate on the "second_user_id" field. It's identical to SecondUserIDEQ.
+func SecondUserID(v int) predicate.PrivateChat {
 	return predicate.PrivateChat(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldUpdatedDate), v))
+		s.Where(sql.EQ(s.C(FieldSecondUserID), v))
 	})
 }
 
-// DeletedDate applies equality check predicate on the "deleted_date" field. It's identical to DeletedDateEQ.
-func DeletedDate(v time.Time) predicate.PrivateChat {
+// FirstUserIDEQ applies the EQ predicate on the "first_user_id" field.
+func FirstUserIDEQ(v int) predicate.PrivateChat {
 	return predicate.PrivateChat(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldDeletedDate), v))
+		s.Where(sql.EQ(s.C(FieldFirstUserID), v))
 	})
 }
 
-// ReceiverID applies equality check predicate on the "receiver_id" field. It's identical to ReceiverIDEQ.
-func ReceiverID(v int) predicate.PrivateChat {
+// FirstUserIDNEQ applies the NEQ predicate on the "first_user_id" field.
+func FirstUserIDNEQ(v int) predicate.PrivateChat {
 	return predicate.PrivateChat(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldReceiverID), v))
+		s.Where(sql.NEQ(s.C(FieldFirstUserID), v))
 	})
 }
 
-// SenderID applies equality check predicate on the "sender_id" field. It's identical to SenderIDEQ.
-func SenderID(v int) predicate.PrivateChat {
-	return predicate.PrivateChat(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldSenderID), v))
-	})
-}
-
-// CreatedDateEQ applies the EQ predicate on the "created_date" field.
-func CreatedDateEQ(v time.Time) predicate.PrivateChat {
-	return predicate.PrivateChat(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldCreatedDate), v))
-	})
-}
-
-// CreatedDateNEQ applies the NEQ predicate on the "created_date" field.
-func CreatedDateNEQ(v time.Time) predicate.PrivateChat {
-	return predicate.PrivateChat(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldCreatedDate), v))
-	})
-}
-
-// CreatedDateIn applies the In predicate on the "created_date" field.
-func CreatedDateIn(vs ...time.Time) predicate.PrivateChat {
+// FirstUserIDIn applies the In predicate on the "first_user_id" field.
+func FirstUserIDIn(vs ...int) predicate.PrivateChat {
 	v := make([]interface{}, len(vs))
 	for i := range v {
 		v[i] = vs[i]
@@ -143,12 +121,12 @@ func CreatedDateIn(vs ...time.Time) predicate.PrivateChat {
 			s.Where(sql.False())
 			return
 		}
-		s.Where(sql.In(s.C(FieldCreatedDate), v...))
+		s.Where(sql.In(s.C(FieldFirstUserID), v...))
 	})
 }
 
-// CreatedDateNotIn applies the NotIn predicate on the "created_date" field.
-func CreatedDateNotIn(vs ...time.Time) predicate.PrivateChat {
+// FirstUserIDNotIn applies the NotIn predicate on the "first_user_id" field.
+func FirstUserIDNotIn(vs ...int) predicate.PrivateChat {
 	v := make([]interface{}, len(vs))
 	for i := range v {
 		v[i] = vs[i]
@@ -160,54 +138,40 @@ func CreatedDateNotIn(vs ...time.Time) predicate.PrivateChat {
 			s.Where(sql.False())
 			return
 		}
-		s.Where(sql.NotIn(s.C(FieldCreatedDate), v...))
+		s.Where(sql.NotIn(s.C(FieldFirstUserID), v...))
 	})
 }
 
-// CreatedDateGT applies the GT predicate on the "created_date" field.
-func CreatedDateGT(v time.Time) predicate.PrivateChat {
+// FirstUserIDIsNil applies the IsNil predicate on the "first_user_id" field.
+func FirstUserIDIsNil() predicate.PrivateChat {
 	return predicate.PrivateChat(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldCreatedDate), v))
+		s.Where(sql.IsNull(s.C(FieldFirstUserID)))
 	})
 }
 
-// CreatedDateGTE applies the GTE predicate on the "created_date" field.
-func CreatedDateGTE(v time.Time) predicate.PrivateChat {
+// FirstUserIDNotNil applies the NotNil predicate on the "first_user_id" field.
+func FirstUserIDNotNil() predicate.PrivateChat {
 	return predicate.PrivateChat(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldCreatedDate), v))
+		s.Where(sql.NotNull(s.C(FieldFirstUserID)))
 	})
 }
 
-// CreatedDateLT applies the LT predicate on the "created_date" field.
-func CreatedDateLT(v time.Time) predicate.PrivateChat {
+// SecondUserIDEQ applies the EQ predicate on the "second_user_id" field.
+func SecondUserIDEQ(v int) predicate.PrivateChat {
 	return predicate.PrivateChat(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldCreatedDate), v))
+		s.Where(sql.EQ(s.C(FieldSecondUserID), v))
 	})
 }
 
-// CreatedDateLTE applies the LTE predicate on the "created_date" field.
-func CreatedDateLTE(v time.Time) predicate.PrivateChat {
+// SecondUserIDNEQ applies the NEQ predicate on the "second_user_id" field.
+func SecondUserIDNEQ(v int) predicate.PrivateChat {
 	return predicate.PrivateChat(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldCreatedDate), v))
+		s.Where(sql.NEQ(s.C(FieldSecondUserID), v))
 	})
 }
 
-// UpdatedDateEQ applies the EQ predicate on the "updated_date" field.
-func UpdatedDateEQ(v time.Time) predicate.PrivateChat {
-	return predicate.PrivateChat(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldUpdatedDate), v))
-	})
-}
-
-// UpdatedDateNEQ applies the NEQ predicate on the "updated_date" field.
-func UpdatedDateNEQ(v time.Time) predicate.PrivateChat {
-	return predicate.PrivateChat(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldUpdatedDate), v))
-	})
-}
-
-// UpdatedDateIn applies the In predicate on the "updated_date" field.
-func UpdatedDateIn(vs ...time.Time) predicate.PrivateChat {
+// SecondUserIDIn applies the In predicate on the "second_user_id" field.
+func SecondUserIDIn(vs ...int) predicate.PrivateChat {
 	v := make([]interface{}, len(vs))
 	for i := range v {
 		v[i] = vs[i]
@@ -219,12 +183,12 @@ func UpdatedDateIn(vs ...time.Time) predicate.PrivateChat {
 			s.Where(sql.False())
 			return
 		}
-		s.Where(sql.In(s.C(FieldUpdatedDate), v...))
+		s.Where(sql.In(s.C(FieldSecondUserID), v...))
 	})
 }
 
-// UpdatedDateNotIn applies the NotIn predicate on the "updated_date" field.
-func UpdatedDateNotIn(vs ...time.Time) predicate.PrivateChat {
+// SecondUserIDNotIn applies the NotIn predicate on the "second_user_id" field.
+func SecondUserIDNotIn(vs ...int) predicate.PrivateChat {
 	v := make([]interface{}, len(vs))
 	for i := range v {
 		v[i] = vs[i]
@@ -236,243 +200,43 @@ func UpdatedDateNotIn(vs ...time.Time) predicate.PrivateChat {
 			s.Where(sql.False())
 			return
 		}
-		s.Where(sql.NotIn(s.C(FieldUpdatedDate), v...))
+		s.Where(sql.NotIn(s.C(FieldSecondUserID), v...))
 	})
 }
 
-// UpdatedDateGT applies the GT predicate on the "updated_date" field.
-func UpdatedDateGT(v time.Time) predicate.PrivateChat {
+// SecondUserIDIsNil applies the IsNil predicate on the "second_user_id" field.
+func SecondUserIDIsNil() predicate.PrivateChat {
 	return predicate.PrivateChat(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldUpdatedDate), v))
+		s.Where(sql.IsNull(s.C(FieldSecondUserID)))
 	})
 }
 
-// UpdatedDateGTE applies the GTE predicate on the "updated_date" field.
-func UpdatedDateGTE(v time.Time) predicate.PrivateChat {
+// SecondUserIDNotNil applies the NotNil predicate on the "second_user_id" field.
+func SecondUserIDNotNil() predicate.PrivateChat {
 	return predicate.PrivateChat(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldUpdatedDate), v))
+		s.Where(sql.NotNull(s.C(FieldSecondUserID)))
 	})
 }
 
-// UpdatedDateLT applies the LT predicate on the "updated_date" field.
-func UpdatedDateLT(v time.Time) predicate.PrivateChat {
-	return predicate.PrivateChat(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldUpdatedDate), v))
-	})
-}
-
-// UpdatedDateLTE applies the LTE predicate on the "updated_date" field.
-func UpdatedDateLTE(v time.Time) predicate.PrivateChat {
-	return predicate.PrivateChat(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldUpdatedDate), v))
-	})
-}
-
-// DeletedDateEQ applies the EQ predicate on the "deleted_date" field.
-func DeletedDateEQ(v time.Time) predicate.PrivateChat {
-	return predicate.PrivateChat(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldDeletedDate), v))
-	})
-}
-
-// DeletedDateNEQ applies the NEQ predicate on the "deleted_date" field.
-func DeletedDateNEQ(v time.Time) predicate.PrivateChat {
-	return predicate.PrivateChat(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldDeletedDate), v))
-	})
-}
-
-// DeletedDateIn applies the In predicate on the "deleted_date" field.
-func DeletedDateIn(vs ...time.Time) predicate.PrivateChat {
-	v := make([]interface{}, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.PrivateChat(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(v) == 0 {
-			s.Where(sql.False())
-			return
-		}
-		s.Where(sql.In(s.C(FieldDeletedDate), v...))
-	})
-}
-
-// DeletedDateNotIn applies the NotIn predicate on the "deleted_date" field.
-func DeletedDateNotIn(vs ...time.Time) predicate.PrivateChat {
-	v := make([]interface{}, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.PrivateChat(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(v) == 0 {
-			s.Where(sql.False())
-			return
-		}
-		s.Where(sql.NotIn(s.C(FieldDeletedDate), v...))
-	})
-}
-
-// DeletedDateGT applies the GT predicate on the "deleted_date" field.
-func DeletedDateGT(v time.Time) predicate.PrivateChat {
-	return predicate.PrivateChat(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldDeletedDate), v))
-	})
-}
-
-// DeletedDateGTE applies the GTE predicate on the "deleted_date" field.
-func DeletedDateGTE(v time.Time) predicate.PrivateChat {
-	return predicate.PrivateChat(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldDeletedDate), v))
-	})
-}
-
-// DeletedDateLT applies the LT predicate on the "deleted_date" field.
-func DeletedDateLT(v time.Time) predicate.PrivateChat {
-	return predicate.PrivateChat(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldDeletedDate), v))
-	})
-}
-
-// DeletedDateLTE applies the LTE predicate on the "deleted_date" field.
-func DeletedDateLTE(v time.Time) predicate.PrivateChat {
-	return predicate.PrivateChat(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldDeletedDate), v))
-	})
-}
-
-// DeletedDateIsNil applies the IsNil predicate on the "deleted_date" field.
-func DeletedDateIsNil() predicate.PrivateChat {
-	return predicate.PrivateChat(func(s *sql.Selector) {
-		s.Where(sql.IsNull(s.C(FieldDeletedDate)))
-	})
-}
-
-// DeletedDateNotNil applies the NotNil predicate on the "deleted_date" field.
-func DeletedDateNotNil() predicate.PrivateChat {
-	return predicate.PrivateChat(func(s *sql.Selector) {
-		s.Where(sql.NotNull(s.C(FieldDeletedDate)))
-	})
-}
-
-// ReceiverIDEQ applies the EQ predicate on the "receiver_id" field.
-func ReceiverIDEQ(v int) predicate.PrivateChat {
-	return predicate.PrivateChat(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldReceiverID), v))
-	})
-}
-
-// ReceiverIDNEQ applies the NEQ predicate on the "receiver_id" field.
-func ReceiverIDNEQ(v int) predicate.PrivateChat {
-	return predicate.PrivateChat(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldReceiverID), v))
-	})
-}
-
-// ReceiverIDIn applies the In predicate on the "receiver_id" field.
-func ReceiverIDIn(vs ...int) predicate.PrivateChat {
-	v := make([]interface{}, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.PrivateChat(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(v) == 0 {
-			s.Where(sql.False())
-			return
-		}
-		s.Where(sql.In(s.C(FieldReceiverID), v...))
-	})
-}
-
-// ReceiverIDNotIn applies the NotIn predicate on the "receiver_id" field.
-func ReceiverIDNotIn(vs ...int) predicate.PrivateChat {
-	v := make([]interface{}, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.PrivateChat(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(v) == 0 {
-			s.Where(sql.False())
-			return
-		}
-		s.Where(sql.NotIn(s.C(FieldReceiverID), v...))
-	})
-}
-
-// SenderIDEQ applies the EQ predicate on the "sender_id" field.
-func SenderIDEQ(v int) predicate.PrivateChat {
-	return predicate.PrivateChat(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldSenderID), v))
-	})
-}
-
-// SenderIDNEQ applies the NEQ predicate on the "sender_id" field.
-func SenderIDNEQ(v int) predicate.PrivateChat {
-	return predicate.PrivateChat(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldSenderID), v))
-	})
-}
-
-// SenderIDIn applies the In predicate on the "sender_id" field.
-func SenderIDIn(vs ...int) predicate.PrivateChat {
-	v := make([]interface{}, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.PrivateChat(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(v) == 0 {
-			s.Where(sql.False())
-			return
-		}
-		s.Where(sql.In(s.C(FieldSenderID), v...))
-	})
-}
-
-// SenderIDNotIn applies the NotIn predicate on the "sender_id" field.
-func SenderIDNotIn(vs ...int) predicate.PrivateChat {
-	v := make([]interface{}, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.PrivateChat(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(v) == 0 {
-			s.Where(sql.False())
-			return
-		}
-		s.Where(sql.NotIn(s.C(FieldSenderID), v...))
-	})
-}
-
-// HasSender applies the HasEdge predicate on the "sender" edge.
-func HasSender() predicate.PrivateChat {
+// HasFirstUser applies the HasEdge predicate on the "first_user" edge.
+func HasFirstUser() predicate.PrivateChat {
 	return predicate.PrivateChat(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(SenderTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, SenderTable, SenderColumn),
+			sqlgraph.To(FirstUserTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, FirstUserTable, FirstUserColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasSenderWith applies the HasEdge predicate on the "sender" edge with a given conditions (other predicates).
-func HasSenderWith(preds ...predicate.User) predicate.PrivateChat {
+// HasFirstUserWith applies the HasEdge predicate on the "first_user" edge with a given conditions (other predicates).
+func HasFirstUserWith(preds ...predicate.User) predicate.PrivateChat {
 	return predicate.PrivateChat(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(SenderInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, SenderTable, SenderColumn),
+			sqlgraph.To(FirstUserInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, FirstUserTable, FirstUserColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
@@ -482,53 +246,25 @@ func HasSenderWith(preds ...predicate.User) predicate.PrivateChat {
 	})
 }
 
-// HasReceiver applies the HasEdge predicate on the "receiver" edge.
-func HasReceiver() predicate.PrivateChat {
+// HasSecondUser applies the HasEdge predicate on the "second_user" edge.
+func HasSecondUser() predicate.PrivateChat {
 	return predicate.PrivateChat(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(ReceiverTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, ReceiverTable, ReceiverColumn),
+			sqlgraph.To(SecondUserTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, SecondUserTable, SecondUserColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasReceiverWith applies the HasEdge predicate on the "receiver" edge with a given conditions (other predicates).
-func HasReceiverWith(preds ...predicate.User) predicate.PrivateChat {
+// HasSecondUserWith applies the HasEdge predicate on the "second_user" edge with a given conditions (other predicates).
+func HasSecondUserWith(preds ...predicate.User) predicate.PrivateChat {
 	return predicate.PrivateChat(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(ReceiverInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, ReceiverTable, ReceiverColumn),
-		)
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
-}
-
-// HasChats applies the HasEdge predicate on the "chats" edge.
-func HasChats() predicate.PrivateChat {
-	return predicate.PrivateChat(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(ChatsTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, ChatsTable, ChatsColumn),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasChatsWith applies the HasEdge predicate on the "chats" edge with a given conditions (other predicates).
-func HasChatsWith(preds ...predicate.Message) predicate.PrivateChat {
-	return predicate.PrivateChat(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(ChatsInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, ChatsTable, ChatsColumn),
+			sqlgraph.To(SecondUserInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, SecondUserTable, SecondUserColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

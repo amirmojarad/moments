@@ -2,64 +2,42 @@
 
 package privatechat
 
-import (
-	"time"
-)
-
 const (
 	// Label holds the string label denoting the privatechat type in the database.
 	Label = "private_chat"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
-	// FieldCreatedDate holds the string denoting the created_date field in the database.
-	FieldCreatedDate = "created_date"
-	// FieldUpdatedDate holds the string denoting the updated_date field in the database.
-	FieldUpdatedDate = "updated_date"
-	// FieldDeletedDate holds the string denoting the deleted_date field in the database.
-	FieldDeletedDate = "deleted_date"
-	// FieldReceiverID holds the string denoting the receiver_id field in the database.
-	FieldReceiverID = "receiver_id"
-	// FieldSenderID holds the string denoting the sender_id field in the database.
-	FieldSenderID = "sender_id"
-	// EdgeSender holds the string denoting the sender edge name in mutations.
-	EdgeSender = "sender"
-	// EdgeReceiver holds the string denoting the receiver edge name in mutations.
-	EdgeReceiver = "receiver"
-	// EdgeChats holds the string denoting the chats edge name in mutations.
-	EdgeChats = "chats"
+	// FieldFirstUserID holds the string denoting the first_user_id field in the database.
+	FieldFirstUserID = "first_user_id"
+	// FieldSecondUserID holds the string denoting the second_user_id field in the database.
+	FieldSecondUserID = "second_user_id"
+	// EdgeFirstUser holds the string denoting the first_user edge name in mutations.
+	EdgeFirstUser = "first_user"
+	// EdgeSecondUser holds the string denoting the second_user edge name in mutations.
+	EdgeSecondUser = "second_user"
 	// Table holds the table name of the privatechat in the database.
 	Table = "private_chats"
-	// SenderTable is the table that holds the sender relation/edge.
-	SenderTable = "private_chats"
-	// SenderInverseTable is the table name for the User entity.
+	// FirstUserTable is the table that holds the first_user relation/edge.
+	FirstUserTable = "private_chats"
+	// FirstUserInverseTable is the table name for the User entity.
 	// It exists in this package in order to avoid circular dependency with the "user" package.
-	SenderInverseTable = "users"
-	// SenderColumn is the table column denoting the sender relation/edge.
-	SenderColumn = "sender_id"
-	// ReceiverTable is the table that holds the receiver relation/edge.
-	ReceiverTable = "private_chats"
-	// ReceiverInverseTable is the table name for the User entity.
+	FirstUserInverseTable = "users"
+	// FirstUserColumn is the table column denoting the first_user relation/edge.
+	FirstUserColumn = "first_user_id"
+	// SecondUserTable is the table that holds the second_user relation/edge.
+	SecondUserTable = "private_chats"
+	// SecondUserInverseTable is the table name for the User entity.
 	// It exists in this package in order to avoid circular dependency with the "user" package.
-	ReceiverInverseTable = "users"
-	// ReceiverColumn is the table column denoting the receiver relation/edge.
-	ReceiverColumn = "receiver_id"
-	// ChatsTable is the table that holds the chats relation/edge.
-	ChatsTable = "messages"
-	// ChatsInverseTable is the table name for the Message entity.
-	// It exists in this package in order to avoid circular dependency with the "message" package.
-	ChatsInverseTable = "messages"
-	// ChatsColumn is the table column denoting the chats relation/edge.
-	ChatsColumn = "private_chat_chats"
+	SecondUserInverseTable = "users"
+	// SecondUserColumn is the table column denoting the second_user relation/edge.
+	SecondUserColumn = "second_user_id"
 )
 
 // Columns holds all SQL columns for privatechat fields.
 var Columns = []string{
 	FieldID,
-	FieldCreatedDate,
-	FieldUpdatedDate,
-	FieldDeletedDate,
-	FieldReceiverID,
-	FieldSenderID,
+	FieldFirstUserID,
+	FieldSecondUserID,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -71,10 +49,3 @@ func ValidColumn(column string) bool {
 	}
 	return false
 }
-
-var (
-	// DefaultCreatedDate holds the default value on creation for the "created_date" field.
-	DefaultCreatedDate time.Time
-	// DefaultUpdatedDate holds the default value on creation for the "updated_date" field.
-	DefaultUpdatedDate time.Time
-)

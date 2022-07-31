@@ -3,9 +3,7 @@
 package ent
 
 import (
-	"moments/ent/message"
 	"moments/ent/post"
-	"moments/ent/privatechat"
 	"moments/ent/schema"
 	"moments/ent/user"
 	"time"
@@ -15,23 +13,6 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
-	messageMixin := schema.Message{}.Mixin()
-	messageMixinFields0 := messageMixin[0].Fields()
-	_ = messageMixinFields0
-	messageFields := schema.Message{}.Fields()
-	_ = messageFields
-	// messageDescCreatedDate is the schema descriptor for created_date field.
-	messageDescCreatedDate := messageMixinFields0[0].Descriptor()
-	// message.DefaultCreatedDate holds the default value on creation for the created_date field.
-	message.DefaultCreatedDate = messageDescCreatedDate.Default.(time.Time)
-	// messageDescUpdatedDate is the schema descriptor for updated_date field.
-	messageDescUpdatedDate := messageMixinFields0[1].Descriptor()
-	// message.DefaultUpdatedDate holds the default value on creation for the updated_date field.
-	message.DefaultUpdatedDate = messageDescUpdatedDate.Default.(time.Time)
-	// messageDescPlainText is the schema descriptor for plain_text field.
-	messageDescPlainText := messageFields[0].Descriptor()
-	// message.PlainTextValidator is a validator for the "plain_text" field. It is called by the builders before save.
-	message.PlainTextValidator = messageDescPlainText.Validators[0].(func(string) error)
 	postMixin := schema.Post{}.Mixin()
 	postMixinFields0 := postMixin[0].Fields()
 	_ = postMixinFields0
@@ -49,19 +30,6 @@ func init() {
 	postDescLikes := postFields[1].Descriptor()
 	// post.DefaultLikes holds the default value on creation for the likes field.
 	post.DefaultLikes = postDescLikes.Default.(uint64)
-	privatechatMixin := schema.PrivateChat{}.Mixin()
-	privatechatMixinFields0 := privatechatMixin[0].Fields()
-	_ = privatechatMixinFields0
-	privatechatFields := schema.PrivateChat{}.Fields()
-	_ = privatechatFields
-	// privatechatDescCreatedDate is the schema descriptor for created_date field.
-	privatechatDescCreatedDate := privatechatMixinFields0[0].Descriptor()
-	// privatechat.DefaultCreatedDate holds the default value on creation for the created_date field.
-	privatechat.DefaultCreatedDate = privatechatDescCreatedDate.Default.(time.Time)
-	// privatechatDescUpdatedDate is the schema descriptor for updated_date field.
-	privatechatDescUpdatedDate := privatechatMixinFields0[1].Descriptor()
-	// privatechat.DefaultUpdatedDate holds the default value on creation for the updated_date field.
-	privatechat.DefaultUpdatedDate = privatechatDescUpdatedDate.Default.(time.Time)
 	userMixin := schema.User{}.Mixin()
 	userMixinFields0 := userMixin[0].Fields()
 	_ = userMixinFields0

@@ -7,7 +7,6 @@ import (
 	"database/sql/driver"
 	"fmt"
 	"math"
-	"moments/ent/message"
 	"moments/ent/post"
 	"moments/ent/predicate"
 	"moments/ent/privatechat"
@@ -28,12 +27,11 @@ type UserQuery struct {
 	fields     []string
 	predicates []predicate.User
 	// eager-loading edges.
-	withPosts          *PostQuery
-	withFollowers      *UserQuery
-	withFollowing      *UserQuery
-	withSenderPvChat   *PrivateChatQuery
-	withReceiverPvChat *PrivateChatQuery
-	withMessages       *MessageQuery
+	withPosts        *PostQuery
+	withFollowers    *UserQuery
+	withFollowing    *UserQuery
+	withMyPvChats    *PrivateChatQuery
+	withOtherPvChats *PrivateChatQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -136,8 +134,8 @@ func (uq *UserQuery) QueryFollowing() *UserQuery {
 	return query
 }
 
-// QuerySenderPvChat chains the current query on the "sender_pv_chat" edge.
-func (uq *UserQuery) QuerySenderPvChat() *PrivateChatQuery {
+// QueryMyPvChats chains the current query on the "my_pv_chats" edge.
+func (uq *UserQuery) QueryMyPvChats() *PrivateChatQuery {
 	query := &PrivateChatQuery{config: uq.config}
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := uq.prepareQuery(ctx); err != nil {
@@ -150,7 +148,7 @@ func (uq *UserQuery) QuerySenderPvChat() *PrivateChatQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, selector),
 			sqlgraph.To(privatechat.Table, privatechat.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, user.SenderPvChatTable, user.SenderPvChatColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.MyPvChatsTable, user.MyPvChatsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
 		return fromU, nil
@@ -158,8 +156,8 @@ func (uq *UserQuery) QuerySenderPvChat() *PrivateChatQuery {
 	return query
 }
 
-// QueryReceiverPvChat chains the current query on the "receiver_pv_chat" edge.
-func (uq *UserQuery) QueryReceiverPvChat() *PrivateChatQuery {
+// QueryOtherPvChats chains the current query on the "other_pv_chats" edge.
+func (uq *UserQuery) QueryOtherPvChats() *PrivateChatQuery {
 	query := &PrivateChatQuery{config: uq.config}
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := uq.prepareQuery(ctx); err != nil {
@@ -172,29 +170,7 @@ func (uq *UserQuery) QueryReceiverPvChat() *PrivateChatQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, selector),
 			sqlgraph.To(privatechat.Table, privatechat.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, user.ReceiverPvChatTable, user.ReceiverPvChatColumn),
-		)
-		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
-}
-
-// QueryMessages chains the current query on the "messages" edge.
-func (uq *UserQuery) QueryMessages() *MessageQuery {
-	query := &MessageQuery{config: uq.config}
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := uq.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := uq.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(user.Table, user.FieldID, selector),
-			sqlgraph.To(message.Table, message.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, user.MessagesTable, user.MessagesColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.OtherPvChatsTable, user.OtherPvChatsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
 		return fromU, nil
@@ -378,17 +354,16 @@ func (uq *UserQuery) Clone() *UserQuery {
 		return nil
 	}
 	return &UserQuery{
-		config:             uq.config,
-		limit:              uq.limit,
-		offset:             uq.offset,
-		order:              append([]OrderFunc{}, uq.order...),
-		predicates:         append([]predicate.User{}, uq.predicates...),
-		withPosts:          uq.withPosts.Clone(),
-		withFollowers:      uq.withFollowers.Clone(),
-		withFollowing:      uq.withFollowing.Clone(),
-		withSenderPvChat:   uq.withSenderPvChat.Clone(),
-		withReceiverPvChat: uq.withReceiverPvChat.Clone(),
-		withMessages:       uq.withMessages.Clone(),
+		config:           uq.config,
+		limit:            uq.limit,
+		offset:           uq.offset,
+		order:            append([]OrderFunc{}, uq.order...),
+		predicates:       append([]predicate.User{}, uq.predicates...),
+		withPosts:        uq.withPosts.Clone(),
+		withFollowers:    uq.withFollowers.Clone(),
+		withFollowing:    uq.withFollowing.Clone(),
+		withMyPvChats:    uq.withMyPvChats.Clone(),
+		withOtherPvChats: uq.withOtherPvChats.Clone(),
 		// clone intermediate query.
 		sql:    uq.sql.Clone(),
 		path:   uq.path,
@@ -429,36 +404,25 @@ func (uq *UserQuery) WithFollowing(opts ...func(*UserQuery)) *UserQuery {
 	return uq
 }
 
-// WithSenderPvChat tells the query-builder to eager-load the nodes that are connected to
-// the "sender_pv_chat" edge. The optional arguments are used to configure the query builder of the edge.
-func (uq *UserQuery) WithSenderPvChat(opts ...func(*PrivateChatQuery)) *UserQuery {
+// WithMyPvChats tells the query-builder to eager-load the nodes that are connected to
+// the "my_pv_chats" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithMyPvChats(opts ...func(*PrivateChatQuery)) *UserQuery {
 	query := &PrivateChatQuery{config: uq.config}
 	for _, opt := range opts {
 		opt(query)
 	}
-	uq.withSenderPvChat = query
+	uq.withMyPvChats = query
 	return uq
 }
 
-// WithReceiverPvChat tells the query-builder to eager-load the nodes that are connected to
-// the "receiver_pv_chat" edge. The optional arguments are used to configure the query builder of the edge.
-func (uq *UserQuery) WithReceiverPvChat(opts ...func(*PrivateChatQuery)) *UserQuery {
+// WithOtherPvChats tells the query-builder to eager-load the nodes that are connected to
+// the "other_pv_chats" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithOtherPvChats(opts ...func(*PrivateChatQuery)) *UserQuery {
 	query := &PrivateChatQuery{config: uq.config}
 	for _, opt := range opts {
 		opt(query)
 	}
-	uq.withReceiverPvChat = query
-	return uq
-}
-
-// WithMessages tells the query-builder to eager-load the nodes that are connected to
-// the "messages" edge. The optional arguments are used to configure the query builder of the edge.
-func (uq *UserQuery) WithMessages(opts ...func(*MessageQuery)) *UserQuery {
-	query := &MessageQuery{config: uq.config}
-	for _, opt := range opts {
-		opt(query)
-	}
-	uq.withMessages = query
+	uq.withOtherPvChats = query
 	return uq
 }
 
@@ -532,13 +496,12 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	var (
 		nodes       = []*User{}
 		_spec       = uq.querySpec()
-		loadedTypes = [6]bool{
+		loadedTypes = [5]bool{
 			uq.withPosts != nil,
 			uq.withFollowers != nil,
 			uq.withFollowing != nil,
-			uq.withSenderPvChat != nil,
-			uq.withReceiverPvChat != nil,
-			uq.withMessages != nil,
+			uq.withMyPvChats != nil,
+			uq.withOtherPvChats != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
@@ -695,82 +658,53 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 		}
 	}
 
-	if query := uq.withSenderPvChat; query != nil {
+	if query := uq.withMyPvChats; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
 		nodeids := make(map[int]*User)
 		for i := range nodes {
 			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
-			nodes[i].Edges.SenderPvChat = []*PrivateChat{}
+			nodes[i].Edges.MyPvChats = []*PrivateChat{}
 		}
 		query.Where(predicate.PrivateChat(func(s *sql.Selector) {
-			s.Where(sql.InValues(user.SenderPvChatColumn, fks...))
+			s.Where(sql.InValues(user.MyPvChatsColumn, fks...))
 		}))
 		neighbors, err := query.All(ctx)
 		if err != nil {
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.SenderID
+			fk := n.FirstUserID
 			node, ok := nodeids[fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "sender_id" returned %v for node %v`, fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "first_user_id" returned %v for node %v`, fk, n.ID)
 			}
-			node.Edges.SenderPvChat = append(node.Edges.SenderPvChat, n)
+			node.Edges.MyPvChats = append(node.Edges.MyPvChats, n)
 		}
 	}
 
-	if query := uq.withReceiverPvChat; query != nil {
+	if query := uq.withOtherPvChats; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
 		nodeids := make(map[int]*User)
 		for i := range nodes {
 			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
-			nodes[i].Edges.ReceiverPvChat = []*PrivateChat{}
+			nodes[i].Edges.OtherPvChats = []*PrivateChat{}
 		}
 		query.Where(predicate.PrivateChat(func(s *sql.Selector) {
-			s.Where(sql.InValues(user.ReceiverPvChatColumn, fks...))
+			s.Where(sql.InValues(user.OtherPvChatsColumn, fks...))
 		}))
 		neighbors, err := query.All(ctx)
 		if err != nil {
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.ReceiverID
+			fk := n.SecondUserID
 			node, ok := nodeids[fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "receiver_id" returned %v for node %v`, fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "second_user_id" returned %v for node %v`, fk, n.ID)
 			}
-			node.Edges.ReceiverPvChat = append(node.Edges.ReceiverPvChat, n)
-		}
-	}
-
-	if query := uq.withMessages; query != nil {
-		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[int]*User)
-		for i := range nodes {
-			fks = append(fks, nodes[i].ID)
-			nodeids[nodes[i].ID] = nodes[i]
-			nodes[i].Edges.Messages = []*Message{}
-		}
-		query.withFKs = true
-		query.Where(predicate.Message(func(s *sql.Selector) {
-			s.Where(sql.InValues(user.MessagesColumn, fks...))
-		}))
-		neighbors, err := query.All(ctx)
-		if err != nil {
-			return nil, err
-		}
-		for _, n := range neighbors {
-			fk := n.user_messages
-			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "user_messages" is nil for node %v`, n.ID)
-			}
-			node, ok := nodeids[*fk]
-			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "user_messages" returned %v for node %v`, *fk, n.ID)
-			}
-			node.Edges.Messages = append(node.Edges.Messages, n)
+			node.Edges.OtherPvChats = append(node.Edges.OtherPvChats, n)
 		}
 	}
 

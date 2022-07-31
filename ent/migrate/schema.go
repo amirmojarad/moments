@@ -48,36 +48,6 @@ var (
 		Columns:    GroupsColumns,
 		PrimaryKey: []*schema.Column{GroupsColumns[0]},
 	}
-	// MessagesColumns holds the columns for the "messages" table.
-	MessagesColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "created_date", Type: field.TypeTime},
-		{Name: "updated_date", Type: field.TypeTime},
-		{Name: "deleted_date", Type: field.TypeTime, Nullable: true},
-		{Name: "plain_text", Type: field.TypeString, Size: 2147483647},
-		{Name: "private_chat_chats", Type: field.TypeInt, Nullable: true},
-		{Name: "user_messages", Type: field.TypeInt, Nullable: true},
-	}
-	// MessagesTable holds the schema information for the "messages" table.
-	MessagesTable = &schema.Table{
-		Name:       "messages",
-		Columns:    MessagesColumns,
-		PrimaryKey: []*schema.Column{MessagesColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "messages_private_chats_chats",
-				Columns:    []*schema.Column{MessagesColumns[5]},
-				RefColumns: []*schema.Column{PrivateChatsColumns[0]},
-				OnDelete:   schema.SetNull,
-			},
-			{
-				Symbol:     "messages_users_messages",
-				Columns:    []*schema.Column{MessagesColumns[6]},
-				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.SetNull,
-			},
-		},
-	}
 	// PostsColumns holds the columns for the "posts" table.
 	PostsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -106,11 +76,8 @@ var (
 	// PrivateChatsColumns holds the columns for the "private_chats" table.
 	PrivateChatsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "created_date", Type: field.TypeTime},
-		{Name: "updated_date", Type: field.TypeTime},
-		{Name: "deleted_date", Type: field.TypeTime, Nullable: true},
-		{Name: "sender_id", Type: field.TypeInt},
-		{Name: "receiver_id", Type: field.TypeInt},
+		{Name: "first_user_id", Type: field.TypeInt, Nullable: true},
+		{Name: "second_user_id", Type: field.TypeInt, Nullable: true},
 	}
 	// PrivateChatsTable holds the schema information for the "private_chats" table.
 	PrivateChatsTable = &schema.Table{
@@ -119,28 +86,23 @@ var (
 		PrimaryKey: []*schema.Column{PrivateChatsColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:     "private_chats_users_sender_pv_chat",
-				Columns:    []*schema.Column{PrivateChatsColumns[4]},
+				Symbol:     "private_chats_users_my_pv_chats",
+				Columns:    []*schema.Column{PrivateChatsColumns[1]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.Cascade,
+				OnDelete:   schema.SetNull,
 			},
 			{
-				Symbol:     "private_chats_users_receiver_pv_chat",
-				Columns:    []*schema.Column{PrivateChatsColumns[5]},
+				Symbol:     "private_chats_users_other_pv_chats",
+				Columns:    []*schema.Column{PrivateChatsColumns[2]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.Cascade,
+				OnDelete:   schema.SetNull,
 			},
 		},
 		Indexes: []*schema.Index{
 			{
-				Name:    "privatechat_receiver_id_sender_id",
+				Name:    "privatechat_first_user_id_second_user_id",
 				Unique:  true,
-				Columns: []*schema.Column{PrivateChatsColumns[5], PrivateChatsColumns[4]},
-			},
-			{
-				Name:    "privatechat_sender_id_receiver_id",
-				Unique:  true,
-				Columns: []*schema.Column{PrivateChatsColumns[4], PrivateChatsColumns[5]},
+				Columns: []*schema.Column{PrivateChatsColumns[1], PrivateChatsColumns[2]},
 			},
 		},
 	}
@@ -204,7 +166,6 @@ var (
 		ChannelPostsTable,
 		FilesTable,
 		GroupsTable,
-		MessagesTable,
 		PostsTable,
 		PrivateChatsTable,
 		PublicChatsTable,
@@ -214,8 +175,6 @@ var (
 )
 
 func init() {
-	MessagesTable.ForeignKeys[0].RefTable = PrivateChatsTable
-	MessagesTable.ForeignKeys[1].RefTable = UsersTable
 	PostsTable.ForeignKeys[0].RefTable = UsersTable
 	PrivateChatsTable.ForeignKeys[0].RefTable = UsersTable
 	PrivateChatsTable.ForeignKeys[1].RefTable = UsersTable
