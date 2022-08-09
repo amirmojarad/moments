@@ -4,6 +4,7 @@ package ent
 
 import (
 	"moments/ent/post"
+	"moments/ent/room"
 	"moments/ent/schema"
 	"moments/ent/user"
 	"time"
@@ -30,6 +31,12 @@ func init() {
 	postDescLikes := postFields[1].Descriptor()
 	// post.DefaultLikes holds the default value on creation for the likes field.
 	post.DefaultLikes = postDescLikes.Default.(uint64)
+	roomFields := schema.Room{}.Fields()
+	_ = roomFields
+	// roomDescTitle is the schema descriptor for title field.
+	roomDescTitle := roomFields[0].Descriptor()
+	// room.TitleValidator is a validator for the "title" field. It is called by the builders before save.
+	room.TitleValidator = roomDescTitle.Validators[0].(func(string) error)
 	userMixin := schema.User{}.Mixin()
 	userMixinFields0 := userMixin[0].Fields()
 	_ = userMixinFields0

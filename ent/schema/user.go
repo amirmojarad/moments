@@ -38,8 +38,7 @@ func (User) Edges() []ent.Edge {
 			OnDelete: entsql.Cascade,
 		}),
 		edge.To("following", User.Type).From("followers"),
-		edge.To("my_pv_chats", PrivateChat.Type),
-		edge.To("other_pv_chats", PrivateChat.Type),
+		edge.To("rooms", Room.Type),
 	}
 }
 

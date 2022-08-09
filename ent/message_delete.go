@@ -5,7 +5,7 @@ package ent
 import (
 	"context"
 	"fmt"
-	"moments/ent/group"
+	"moments/ent/message"
 	"moments/ent/predicate"
 
 	"entgo.io/ent/dialect/sql"
@@ -13,45 +13,45 @@ import (
 	"entgo.io/ent/schema/field"
 )
 
-// GroupDelete is the builder for deleting a Group entity.
-type GroupDelete struct {
+// MessageDelete is the builder for deleting a Message entity.
+type MessageDelete struct {
 	config
 	hooks    []Hook
-	mutation *GroupMutation
+	mutation *MessageMutation
 }
 
-// Where appends a list predicates to the GroupDelete builder.
-func (gd *GroupDelete) Where(ps ...predicate.Group) *GroupDelete {
-	gd.mutation.Where(ps...)
-	return gd
+// Where appends a list predicates to the MessageDelete builder.
+func (md *MessageDelete) Where(ps ...predicate.Message) *MessageDelete {
+	md.mutation.Where(ps...)
+	return md
 }
 
 // Exec executes the deletion query and returns how many vertices were deleted.
-func (gd *GroupDelete) Exec(ctx context.Context) (int, error) {
+func (md *MessageDelete) Exec(ctx context.Context) (int, error) {
 	var (
 		err      error
 		affected int
 	)
-	if len(gd.hooks) == 0 {
-		affected, err = gd.sqlExec(ctx)
+	if len(md.hooks) == 0 {
+		affected, err = md.sqlExec(ctx)
 	} else {
 		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*GroupMutation)
+			mutation, ok := m.(*MessageMutation)
 			if !ok {
 				return nil, fmt.Errorf("unexpected mutation type %T", m)
 			}
-			gd.mutation = mutation
-			affected, err = gd.sqlExec(ctx)
+			md.mutation = mutation
+			affected, err = md.sqlExec(ctx)
 			mutation.done = true
 			return affected, err
 		})
-		for i := len(gd.hooks) - 1; i >= 0; i-- {
-			if gd.hooks[i] == nil {
+		for i := len(md.hooks) - 1; i >= 0; i-- {
+			if md.hooks[i] == nil {
 				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
 			}
-			mut = gd.hooks[i](mut)
+			mut = md.hooks[i](mut)
 		}
-		if _, err := mut.Mutate(ctx, gd.mutation); err != nil {
+		if _, err := mut.Mutate(ctx, md.mutation); err != nil {
 			return 0, err
 		}
 	}
@@ -59,57 +59,57 @@ func (gd *GroupDelete) Exec(ctx context.Context) (int, error) {
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (gd *GroupDelete) ExecX(ctx context.Context) int {
-	n, err := gd.Exec(ctx)
+func (md *MessageDelete) ExecX(ctx context.Context) int {
+	n, err := md.Exec(ctx)
 	if err != nil {
 		panic(err)
 	}
 	return n
 }
 
-func (gd *GroupDelete) sqlExec(ctx context.Context) (int, error) {
+func (md *MessageDelete) sqlExec(ctx context.Context) (int, error) {
 	_spec := &sqlgraph.DeleteSpec{
 		Node: &sqlgraph.NodeSpec{
-			Table: group.Table,
+			Table: message.Table,
 			ID: &sqlgraph.FieldSpec{
 				Type:   field.TypeInt,
-				Column: group.FieldID,
+				Column: message.FieldID,
 			},
 		},
 	}
-	if ps := gd.mutation.predicates; len(ps) > 0 {
+	if ps := md.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	affected, err := sqlgraph.DeleteNodes(ctx, gd.driver, _spec)
+	affected, err := sqlgraph.DeleteNodes(ctx, md.driver, _spec)
 	if err != nil && sqlgraph.IsConstraintError(err) {
 		err = &ConstraintError{msg: err.Error(), wrap: err}
 	}
 	return affected, err
 }
 
-// GroupDeleteOne is the builder for deleting a single Group entity.
-type GroupDeleteOne struct {
-	gd *GroupDelete
+// MessageDeleteOne is the builder for deleting a single Message entity.
+type MessageDeleteOne struct {
+	md *MessageDelete
 }
 
 // Exec executes the deletion query.
-func (gdo *GroupDeleteOne) Exec(ctx context.Context) error {
-	n, err := gdo.gd.Exec(ctx)
+func (mdo *MessageDeleteOne) Exec(ctx context.Context) error {
+	n, err := mdo.md.Exec(ctx)
 	switch {
 	case err != nil:
 		return err
 	case n == 0:
-		return &NotFoundError{group.Label}
+		return &NotFoundError{message.Label}
 	default:
 		return nil
 	}
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (gdo *GroupDeleteOne) ExecX(ctx context.Context) {
-	gdo.gd.ExecX(ctx)
+func (mdo *MessageDeleteOne) ExecX(ctx context.Context) {
+	mdo.md.ExecX(ctx)
 }

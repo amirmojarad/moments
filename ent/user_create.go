@@ -7,7 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"moments/ent/post"
-	"moments/ent/privatechat"
+	"moments/ent/room"
 	"moments/ent/user"
 	"time"
 
@@ -169,34 +169,19 @@ func (uc *UserCreate) AddFollowing(u ...*User) *UserCreate {
 	return uc.AddFollowingIDs(ids...)
 }
 
-// AddMyPvChatIDs adds the "my_pv_chats" edge to the PrivateChat entity by IDs.
-func (uc *UserCreate) AddMyPvChatIDs(ids ...int) *UserCreate {
-	uc.mutation.AddMyPvChatIDs(ids...)
+// AddRoomIDs adds the "rooms" edge to the Room entity by IDs.
+func (uc *UserCreate) AddRoomIDs(ids ...int) *UserCreate {
+	uc.mutation.AddRoomIDs(ids...)
 	return uc
 }
 
-// AddMyPvChats adds the "my_pv_chats" edges to the PrivateChat entity.
-func (uc *UserCreate) AddMyPvChats(p ...*PrivateChat) *UserCreate {
-	ids := make([]int, len(p))
-	for i := range p {
-		ids[i] = p[i].ID
+// AddRooms adds the "rooms" edges to the Room entity.
+func (uc *UserCreate) AddRooms(r ...*Room) *UserCreate {
+	ids := make([]int, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
 	}
-	return uc.AddMyPvChatIDs(ids...)
-}
-
-// AddOtherPvChatIDs adds the "other_pv_chats" edge to the PrivateChat entity by IDs.
-func (uc *UserCreate) AddOtherPvChatIDs(ids ...int) *UserCreate {
-	uc.mutation.AddOtherPvChatIDs(ids...)
-	return uc
-}
-
-// AddOtherPvChats adds the "other_pv_chats" edges to the PrivateChat entity.
-func (uc *UserCreate) AddOtherPvChats(p ...*PrivateChat) *UserCreate {
-	ids := make([]int, len(p))
-	for i := range p {
-		ids[i] = p[i].ID
-	}
-	return uc.AddOtherPvChatIDs(ids...)
+	return uc.AddRoomIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -487,36 +472,17 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := uc.mutation.MyPvChatsIDs(); len(nodes) > 0 {
+	if nodes := uc.mutation.RoomsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
+			Rel:     sqlgraph.M2M,
 			Inverse: false,
-			Table:   user.MyPvChatsTable,
-			Columns: []string{user.MyPvChatsColumn},
+			Table:   user.RoomsTable,
+			Columns: user.RoomsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
-					Column: privatechat.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges = append(_spec.Edges, edge)
-	}
-	if nodes := uc.mutation.OtherPvChatsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   user.OtherPvChatsTable,
-			Columns: []string{user.OtherPvChatsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: privatechat.FieldID,
+					Column: room.FieldID,
 				},
 			},
 		}

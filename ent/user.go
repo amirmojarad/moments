@@ -47,13 +47,11 @@ type UserEdges struct {
 	Followers []*User `json:"followers,omitempty"`
 	// Following holds the value of the following edge.
 	Following []*User `json:"following,omitempty"`
-	// MyPvChats holds the value of the my_pv_chats edge.
-	MyPvChats []*PrivateChat `json:"my_pv_chats,omitempty"`
-	// OtherPvChats holds the value of the other_pv_chats edge.
-	OtherPvChats []*PrivateChat `json:"other_pv_chats,omitempty"`
+	// Rooms holds the value of the rooms edge.
+	Rooms []*Room `json:"rooms,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [5]bool
+	loadedTypes [4]bool
 }
 
 // PostsOrErr returns the Posts value or an error if the edge
@@ -83,22 +81,13 @@ func (e UserEdges) FollowingOrErr() ([]*User, error) {
 	return nil, &NotLoadedError{edge: "following"}
 }
 
-// MyPvChatsOrErr returns the MyPvChats value or an error if the edge
+// RoomsOrErr returns the Rooms value or an error if the edge
 // was not loaded in eager-loading.
-func (e UserEdges) MyPvChatsOrErr() ([]*PrivateChat, error) {
+func (e UserEdges) RoomsOrErr() ([]*Room, error) {
 	if e.loadedTypes[3] {
-		return e.MyPvChats, nil
+		return e.Rooms, nil
 	}
-	return nil, &NotLoadedError{edge: "my_pv_chats"}
-}
-
-// OtherPvChatsOrErr returns the OtherPvChats value or an error if the edge
-// was not loaded in eager-loading.
-func (e UserEdges) OtherPvChatsOrErr() ([]*PrivateChat, error) {
-	if e.loadedTypes[4] {
-		return e.OtherPvChats, nil
-	}
-	return nil, &NotLoadedError{edge: "other_pv_chats"}
+	return nil, &NotLoadedError{edge: "rooms"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -211,14 +200,9 @@ func (u *User) QueryFollowing() *UserQuery {
 	return (&UserClient{config: u.config}).QueryFollowing(u)
 }
 
-// QueryMyPvChats queries the "my_pv_chats" edge of the User entity.
-func (u *User) QueryMyPvChats() *PrivateChatQuery {
-	return (&UserClient{config: u.config}).QueryMyPvChats(u)
-}
-
-// QueryOtherPvChats queries the "other_pv_chats" edge of the User entity.
-func (u *User) QueryOtherPvChats() *PrivateChatQuery {
-	return (&UserClient{config: u.config}).QueryOtherPvChats(u)
+// QueryRooms queries the "rooms" edge of the User entity.
+func (u *User) QueryRooms() *RoomQuery {
+	return (&UserClient{config: u.config}).QueryRooms(u)
 }
 
 // Update returns a builder for updating this User.

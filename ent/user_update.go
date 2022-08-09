@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"moments/ent/post"
 	"moments/ent/predicate"
-	"moments/ent/privatechat"
+	"moments/ent/room"
 	"moments/ent/user"
 	"time"
 
@@ -201,34 +201,19 @@ func (uu *UserUpdate) AddFollowing(u ...*User) *UserUpdate {
 	return uu.AddFollowingIDs(ids...)
 }
 
-// AddMyPvChatIDs adds the "my_pv_chats" edge to the PrivateChat entity by IDs.
-func (uu *UserUpdate) AddMyPvChatIDs(ids ...int) *UserUpdate {
-	uu.mutation.AddMyPvChatIDs(ids...)
+// AddRoomIDs adds the "rooms" edge to the Room entity by IDs.
+func (uu *UserUpdate) AddRoomIDs(ids ...int) *UserUpdate {
+	uu.mutation.AddRoomIDs(ids...)
 	return uu
 }
 
-// AddMyPvChats adds the "my_pv_chats" edges to the PrivateChat entity.
-func (uu *UserUpdate) AddMyPvChats(p ...*PrivateChat) *UserUpdate {
-	ids := make([]int, len(p))
-	for i := range p {
-		ids[i] = p[i].ID
+// AddRooms adds the "rooms" edges to the Room entity.
+func (uu *UserUpdate) AddRooms(r ...*Room) *UserUpdate {
+	ids := make([]int, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
 	}
-	return uu.AddMyPvChatIDs(ids...)
-}
-
-// AddOtherPvChatIDs adds the "other_pv_chats" edge to the PrivateChat entity by IDs.
-func (uu *UserUpdate) AddOtherPvChatIDs(ids ...int) *UserUpdate {
-	uu.mutation.AddOtherPvChatIDs(ids...)
-	return uu
-}
-
-// AddOtherPvChats adds the "other_pv_chats" edges to the PrivateChat entity.
-func (uu *UserUpdate) AddOtherPvChats(p ...*PrivateChat) *UserUpdate {
-	ids := make([]int, len(p))
-	for i := range p {
-		ids[i] = p[i].ID
-	}
-	return uu.AddOtherPvChatIDs(ids...)
+	return uu.AddRoomIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -299,46 +284,25 @@ func (uu *UserUpdate) RemoveFollowing(u ...*User) *UserUpdate {
 	return uu.RemoveFollowingIDs(ids...)
 }
 
-// ClearMyPvChats clears all "my_pv_chats" edges to the PrivateChat entity.
-func (uu *UserUpdate) ClearMyPvChats() *UserUpdate {
-	uu.mutation.ClearMyPvChats()
+// ClearRooms clears all "rooms" edges to the Room entity.
+func (uu *UserUpdate) ClearRooms() *UserUpdate {
+	uu.mutation.ClearRooms()
 	return uu
 }
 
-// RemoveMyPvChatIDs removes the "my_pv_chats" edge to PrivateChat entities by IDs.
-func (uu *UserUpdate) RemoveMyPvChatIDs(ids ...int) *UserUpdate {
-	uu.mutation.RemoveMyPvChatIDs(ids...)
+// RemoveRoomIDs removes the "rooms" edge to Room entities by IDs.
+func (uu *UserUpdate) RemoveRoomIDs(ids ...int) *UserUpdate {
+	uu.mutation.RemoveRoomIDs(ids...)
 	return uu
 }
 
-// RemoveMyPvChats removes "my_pv_chats" edges to PrivateChat entities.
-func (uu *UserUpdate) RemoveMyPvChats(p ...*PrivateChat) *UserUpdate {
-	ids := make([]int, len(p))
-	for i := range p {
-		ids[i] = p[i].ID
+// RemoveRooms removes "rooms" edges to Room entities.
+func (uu *UserUpdate) RemoveRooms(r ...*Room) *UserUpdate {
+	ids := make([]int, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
 	}
-	return uu.RemoveMyPvChatIDs(ids...)
-}
-
-// ClearOtherPvChats clears all "other_pv_chats" edges to the PrivateChat entity.
-func (uu *UserUpdate) ClearOtherPvChats() *UserUpdate {
-	uu.mutation.ClearOtherPvChats()
-	return uu
-}
-
-// RemoveOtherPvChatIDs removes the "other_pv_chats" edge to PrivateChat entities by IDs.
-func (uu *UserUpdate) RemoveOtherPvChatIDs(ids ...int) *UserUpdate {
-	uu.mutation.RemoveOtherPvChatIDs(ids...)
-	return uu
-}
-
-// RemoveOtherPvChats removes "other_pv_chats" edges to PrivateChat entities.
-func (uu *UserUpdate) RemoveOtherPvChats(p ...*PrivateChat) *UserUpdate {
-	ids := make([]int, len(p))
-	for i := range p {
-		ids[i] = p[i].ID
-	}
-	return uu.RemoveOtherPvChatIDs(ids...)
+	return uu.RemoveRoomIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -693,33 +657,33 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if uu.mutation.MyPvChatsCleared() {
+	if uu.mutation.RoomsCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
+			Rel:     sqlgraph.M2M,
 			Inverse: false,
-			Table:   user.MyPvChatsTable,
-			Columns: []string{user.MyPvChatsColumn},
+			Table:   user.RoomsTable,
+			Columns: user.RoomsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
-					Column: privatechat.FieldID,
+					Column: room.FieldID,
 				},
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uu.mutation.RemovedMyPvChatsIDs(); len(nodes) > 0 && !uu.mutation.MyPvChatsCleared() {
+	if nodes := uu.mutation.RemovedRoomsIDs(); len(nodes) > 0 && !uu.mutation.RoomsCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
+			Rel:     sqlgraph.M2M,
 			Inverse: false,
-			Table:   user.MyPvChatsTable,
-			Columns: []string{user.MyPvChatsColumn},
+			Table:   user.RoomsTable,
+			Columns: user.RoomsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
-					Column: privatechat.FieldID,
+					Column: room.FieldID,
 				},
 			},
 		}
@@ -728,71 +692,17 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uu.mutation.MyPvChatsIDs(); len(nodes) > 0 {
+	if nodes := uu.mutation.RoomsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
+			Rel:     sqlgraph.M2M,
 			Inverse: false,
-			Table:   user.MyPvChatsTable,
-			Columns: []string{user.MyPvChatsColumn},
+			Table:   user.RoomsTable,
+			Columns: user.RoomsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
-					Column: privatechat.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if uu.mutation.OtherPvChatsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   user.OtherPvChatsTable,
-			Columns: []string{user.OtherPvChatsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: privatechat.FieldID,
-				},
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := uu.mutation.RemovedOtherPvChatsIDs(); len(nodes) > 0 && !uu.mutation.OtherPvChatsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   user.OtherPvChatsTable,
-			Columns: []string{user.OtherPvChatsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: privatechat.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := uu.mutation.OtherPvChatsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   user.OtherPvChatsTable,
-			Columns: []string{user.OtherPvChatsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: privatechat.FieldID,
+					Column: room.FieldID,
 				},
 			},
 		}
@@ -991,34 +901,19 @@ func (uuo *UserUpdateOne) AddFollowing(u ...*User) *UserUpdateOne {
 	return uuo.AddFollowingIDs(ids...)
 }
 
-// AddMyPvChatIDs adds the "my_pv_chats" edge to the PrivateChat entity by IDs.
-func (uuo *UserUpdateOne) AddMyPvChatIDs(ids ...int) *UserUpdateOne {
-	uuo.mutation.AddMyPvChatIDs(ids...)
+// AddRoomIDs adds the "rooms" edge to the Room entity by IDs.
+func (uuo *UserUpdateOne) AddRoomIDs(ids ...int) *UserUpdateOne {
+	uuo.mutation.AddRoomIDs(ids...)
 	return uuo
 }
 
-// AddMyPvChats adds the "my_pv_chats" edges to the PrivateChat entity.
-func (uuo *UserUpdateOne) AddMyPvChats(p ...*PrivateChat) *UserUpdateOne {
-	ids := make([]int, len(p))
-	for i := range p {
-		ids[i] = p[i].ID
+// AddRooms adds the "rooms" edges to the Room entity.
+func (uuo *UserUpdateOne) AddRooms(r ...*Room) *UserUpdateOne {
+	ids := make([]int, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
 	}
-	return uuo.AddMyPvChatIDs(ids...)
-}
-
-// AddOtherPvChatIDs adds the "other_pv_chats" edge to the PrivateChat entity by IDs.
-func (uuo *UserUpdateOne) AddOtherPvChatIDs(ids ...int) *UserUpdateOne {
-	uuo.mutation.AddOtherPvChatIDs(ids...)
-	return uuo
-}
-
-// AddOtherPvChats adds the "other_pv_chats" edges to the PrivateChat entity.
-func (uuo *UserUpdateOne) AddOtherPvChats(p ...*PrivateChat) *UserUpdateOne {
-	ids := make([]int, len(p))
-	for i := range p {
-		ids[i] = p[i].ID
-	}
-	return uuo.AddOtherPvChatIDs(ids...)
+	return uuo.AddRoomIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -1089,46 +984,25 @@ func (uuo *UserUpdateOne) RemoveFollowing(u ...*User) *UserUpdateOne {
 	return uuo.RemoveFollowingIDs(ids...)
 }
 
-// ClearMyPvChats clears all "my_pv_chats" edges to the PrivateChat entity.
-func (uuo *UserUpdateOne) ClearMyPvChats() *UserUpdateOne {
-	uuo.mutation.ClearMyPvChats()
+// ClearRooms clears all "rooms" edges to the Room entity.
+func (uuo *UserUpdateOne) ClearRooms() *UserUpdateOne {
+	uuo.mutation.ClearRooms()
 	return uuo
 }
 
-// RemoveMyPvChatIDs removes the "my_pv_chats" edge to PrivateChat entities by IDs.
-func (uuo *UserUpdateOne) RemoveMyPvChatIDs(ids ...int) *UserUpdateOne {
-	uuo.mutation.RemoveMyPvChatIDs(ids...)
+// RemoveRoomIDs removes the "rooms" edge to Room entities by IDs.
+func (uuo *UserUpdateOne) RemoveRoomIDs(ids ...int) *UserUpdateOne {
+	uuo.mutation.RemoveRoomIDs(ids...)
 	return uuo
 }
 
-// RemoveMyPvChats removes "my_pv_chats" edges to PrivateChat entities.
-func (uuo *UserUpdateOne) RemoveMyPvChats(p ...*PrivateChat) *UserUpdateOne {
-	ids := make([]int, len(p))
-	for i := range p {
-		ids[i] = p[i].ID
+// RemoveRooms removes "rooms" edges to Room entities.
+func (uuo *UserUpdateOne) RemoveRooms(r ...*Room) *UserUpdateOne {
+	ids := make([]int, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
 	}
-	return uuo.RemoveMyPvChatIDs(ids...)
-}
-
-// ClearOtherPvChats clears all "other_pv_chats" edges to the PrivateChat entity.
-func (uuo *UserUpdateOne) ClearOtherPvChats() *UserUpdateOne {
-	uuo.mutation.ClearOtherPvChats()
-	return uuo
-}
-
-// RemoveOtherPvChatIDs removes the "other_pv_chats" edge to PrivateChat entities by IDs.
-func (uuo *UserUpdateOne) RemoveOtherPvChatIDs(ids ...int) *UserUpdateOne {
-	uuo.mutation.RemoveOtherPvChatIDs(ids...)
-	return uuo
-}
-
-// RemoveOtherPvChats removes "other_pv_chats" edges to PrivateChat entities.
-func (uuo *UserUpdateOne) RemoveOtherPvChats(p ...*PrivateChat) *UserUpdateOne {
-	ids := make([]int, len(p))
-	for i := range p {
-		ids[i] = p[i].ID
-	}
-	return uuo.RemoveOtherPvChatIDs(ids...)
+	return uuo.RemoveRoomIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -1513,33 +1387,33 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if uuo.mutation.MyPvChatsCleared() {
+	if uuo.mutation.RoomsCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
+			Rel:     sqlgraph.M2M,
 			Inverse: false,
-			Table:   user.MyPvChatsTable,
-			Columns: []string{user.MyPvChatsColumn},
+			Table:   user.RoomsTable,
+			Columns: user.RoomsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
-					Column: privatechat.FieldID,
+					Column: room.FieldID,
 				},
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uuo.mutation.RemovedMyPvChatsIDs(); len(nodes) > 0 && !uuo.mutation.MyPvChatsCleared() {
+	if nodes := uuo.mutation.RemovedRoomsIDs(); len(nodes) > 0 && !uuo.mutation.RoomsCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
+			Rel:     sqlgraph.M2M,
 			Inverse: false,
-			Table:   user.MyPvChatsTable,
-			Columns: []string{user.MyPvChatsColumn},
+			Table:   user.RoomsTable,
+			Columns: user.RoomsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
-					Column: privatechat.FieldID,
+					Column: room.FieldID,
 				},
 			},
 		}
@@ -1548,71 +1422,17 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uuo.mutation.MyPvChatsIDs(); len(nodes) > 0 {
+	if nodes := uuo.mutation.RoomsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
+			Rel:     sqlgraph.M2M,
 			Inverse: false,
-			Table:   user.MyPvChatsTable,
-			Columns: []string{user.MyPvChatsColumn},
+			Table:   user.RoomsTable,
+			Columns: user.RoomsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
-					Column: privatechat.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if uuo.mutation.OtherPvChatsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   user.OtherPvChatsTable,
-			Columns: []string{user.OtherPvChatsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: privatechat.FieldID,
-				},
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := uuo.mutation.RemovedOtherPvChatsIDs(); len(nodes) > 0 && !uuo.mutation.OtherPvChatsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   user.OtherPvChatsTable,
-			Columns: []string{user.OtherPvChatsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: privatechat.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := uuo.mutation.OtherPvChatsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   user.OtherPvChatsTable,
-			Columns: []string{user.OtherPvChatsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: privatechat.FieldID,
+					Column: room.FieldID,
 				},
 			},
 		}

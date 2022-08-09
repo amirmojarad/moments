@@ -984,53 +984,25 @@ func HasFollowingWith(preds ...predicate.User) predicate.User {
 	})
 }
 
-// HasMyPvChats applies the HasEdge predicate on the "my_pv_chats" edge.
-func HasMyPvChats() predicate.User {
+// HasRooms applies the HasEdge predicate on the "rooms" edge.
+func HasRooms() predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(MyPvChatsTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, MyPvChatsTable, MyPvChatsColumn),
+			sqlgraph.To(RoomsTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, RoomsTable, RoomsPrimaryKey...),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasMyPvChatsWith applies the HasEdge predicate on the "my_pv_chats" edge with a given conditions (other predicates).
-func HasMyPvChatsWith(preds ...predicate.PrivateChat) predicate.User {
+// HasRoomsWith applies the HasEdge predicate on the "rooms" edge with a given conditions (other predicates).
+func HasRoomsWith(preds ...predicate.Room) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(MyPvChatsInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, MyPvChatsTable, MyPvChatsColumn),
-		)
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
-}
-
-// HasOtherPvChats applies the HasEdge predicate on the "other_pv_chats" edge.
-func HasOtherPvChats() predicate.User {
-	return predicate.User(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(OtherPvChatsTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, OtherPvChatsTable, OtherPvChatsColumn),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasOtherPvChatsWith applies the HasEdge predicate on the "other_pv_chats" edge with a given conditions (other predicates).
-func HasOtherPvChatsWith(preds ...predicate.PrivateChat) predicate.User {
-	return predicate.User(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(OtherPvChatsInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, OtherPvChatsTable, OtherPvChatsColumn),
+			sqlgraph.To(RoomsInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, RoomsTable, RoomsPrimaryKey...),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

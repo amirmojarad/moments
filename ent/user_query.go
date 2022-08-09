@@ -9,7 +9,7 @@ import (
 	"math"
 	"moments/ent/post"
 	"moments/ent/predicate"
-	"moments/ent/privatechat"
+	"moments/ent/room"
 	"moments/ent/user"
 
 	"entgo.io/ent/dialect/sql"
@@ -27,11 +27,10 @@ type UserQuery struct {
 	fields     []string
 	predicates []predicate.User
 	// eager-loading edges.
-	withPosts        *PostQuery
-	withFollowers    *UserQuery
-	withFollowing    *UserQuery
-	withMyPvChats    *PrivateChatQuery
-	withOtherPvChats *PrivateChatQuery
+	withPosts     *PostQuery
+	withFollowers *UserQuery
+	withFollowing *UserQuery
+	withRooms     *RoomQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -134,9 +133,9 @@ func (uq *UserQuery) QueryFollowing() *UserQuery {
 	return query
 }
 
-// QueryMyPvChats chains the current query on the "my_pv_chats" edge.
-func (uq *UserQuery) QueryMyPvChats() *PrivateChatQuery {
-	query := &PrivateChatQuery{config: uq.config}
+// QueryRooms chains the current query on the "rooms" edge.
+func (uq *UserQuery) QueryRooms() *RoomQuery {
+	query := &RoomQuery{config: uq.config}
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := uq.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -147,30 +146,8 @@ func (uq *UserQuery) QueryMyPvChats() *PrivateChatQuery {
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, selector),
-			sqlgraph.To(privatechat.Table, privatechat.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, user.MyPvChatsTable, user.MyPvChatsColumn),
-		)
-		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
-}
-
-// QueryOtherPvChats chains the current query on the "other_pv_chats" edge.
-func (uq *UserQuery) QueryOtherPvChats() *PrivateChatQuery {
-	query := &PrivateChatQuery{config: uq.config}
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := uq.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := uq.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(user.Table, user.FieldID, selector),
-			sqlgraph.To(privatechat.Table, privatechat.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, user.OtherPvChatsTable, user.OtherPvChatsColumn),
+			sqlgraph.To(room.Table, room.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, user.RoomsTable, user.RoomsPrimaryKey...),
 		)
 		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
 		return fromU, nil
@@ -354,16 +331,15 @@ func (uq *UserQuery) Clone() *UserQuery {
 		return nil
 	}
 	return &UserQuery{
-		config:           uq.config,
-		limit:            uq.limit,
-		offset:           uq.offset,
-		order:            append([]OrderFunc{}, uq.order...),
-		predicates:       append([]predicate.User{}, uq.predicates...),
-		withPosts:        uq.withPosts.Clone(),
-		withFollowers:    uq.withFollowers.Clone(),
-		withFollowing:    uq.withFollowing.Clone(),
-		withMyPvChats:    uq.withMyPvChats.Clone(),
-		withOtherPvChats: uq.withOtherPvChats.Clone(),
+		config:        uq.config,
+		limit:         uq.limit,
+		offset:        uq.offset,
+		order:         append([]OrderFunc{}, uq.order...),
+		predicates:    append([]predicate.User{}, uq.predicates...),
+		withPosts:     uq.withPosts.Clone(),
+		withFollowers: uq.withFollowers.Clone(),
+		withFollowing: uq.withFollowing.Clone(),
+		withRooms:     uq.withRooms.Clone(),
 		// clone intermediate query.
 		sql:    uq.sql.Clone(),
 		path:   uq.path,
@@ -404,25 +380,14 @@ func (uq *UserQuery) WithFollowing(opts ...func(*UserQuery)) *UserQuery {
 	return uq
 }
 
-// WithMyPvChats tells the query-builder to eager-load the nodes that are connected to
-// the "my_pv_chats" edge. The optional arguments are used to configure the query builder of the edge.
-func (uq *UserQuery) WithMyPvChats(opts ...func(*PrivateChatQuery)) *UserQuery {
-	query := &PrivateChatQuery{config: uq.config}
+// WithRooms tells the query-builder to eager-load the nodes that are connected to
+// the "rooms" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithRooms(opts ...func(*RoomQuery)) *UserQuery {
+	query := &RoomQuery{config: uq.config}
 	for _, opt := range opts {
 		opt(query)
 	}
-	uq.withMyPvChats = query
-	return uq
-}
-
-// WithOtherPvChats tells the query-builder to eager-load the nodes that are connected to
-// the "other_pv_chats" edge. The optional arguments are used to configure the query builder of the edge.
-func (uq *UserQuery) WithOtherPvChats(opts ...func(*PrivateChatQuery)) *UserQuery {
-	query := &PrivateChatQuery{config: uq.config}
-	for _, opt := range opts {
-		opt(query)
-	}
-	uq.withOtherPvChats = query
+	uq.withRooms = query
 	return uq
 }
 
@@ -496,12 +461,11 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	var (
 		nodes       = []*User{}
 		_spec       = uq.querySpec()
-		loadedTypes = [5]bool{
+		loadedTypes = [4]bool{
 			uq.withPosts != nil,
 			uq.withFollowers != nil,
 			uq.withFollowing != nil,
-			uq.withMyPvChats != nil,
-			uq.withOtherPvChats != nil,
+			uq.withRooms != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
@@ -658,53 +622,56 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 		}
 	}
 
-	if query := uq.withMyPvChats; query != nil {
-		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[int]*User)
-		for i := range nodes {
-			fks = append(fks, nodes[i].ID)
-			nodeids[nodes[i].ID] = nodes[i]
-			nodes[i].Edges.MyPvChats = []*PrivateChat{}
+	if query := uq.withRooms; query != nil {
+		edgeids := make([]driver.Value, len(nodes))
+		byid := make(map[int]*User)
+		nids := make(map[int]map[*User]struct{})
+		for i, node := range nodes {
+			edgeids[i] = node.ID
+			byid[node.ID] = node
+			node.Edges.Rooms = []*Room{}
 		}
-		query.Where(predicate.PrivateChat(func(s *sql.Selector) {
-			s.Where(sql.InValues(user.MyPvChatsColumn, fks...))
-		}))
-		neighbors, err := query.All(ctx)
+		query.Where(func(s *sql.Selector) {
+			joinT := sql.Table(user.RoomsTable)
+			s.Join(joinT).On(s.C(room.FieldID), joinT.C(user.RoomsPrimaryKey[1]))
+			s.Where(sql.InValues(joinT.C(user.RoomsPrimaryKey[0]), edgeids...))
+			columns := s.SelectedColumns()
+			s.Select(joinT.C(user.RoomsPrimaryKey[0]))
+			s.AppendSelect(columns...)
+			s.SetDistinct(false)
+		})
+		neighbors, err := query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
+			assign := spec.Assign
+			values := spec.ScanValues
+			spec.ScanValues = func(columns []string) ([]interface{}, error) {
+				values, err := values(columns[1:])
+				if err != nil {
+					return nil, err
+				}
+				return append([]interface{}{new(sql.NullInt64)}, values...), nil
+			}
+			spec.Assign = func(columns []string, values []interface{}) error {
+				outValue := int(values[0].(*sql.NullInt64).Int64)
+				inValue := int(values[1].(*sql.NullInt64).Int64)
+				if nids[inValue] == nil {
+					nids[inValue] = map[*User]struct{}{byid[outValue]: struct{}{}}
+					return assign(columns[1:], values[1:])
+				}
+				nids[inValue][byid[outValue]] = struct{}{}
+				return nil
+			}
+		})
 		if err != nil {
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.FirstUserID
-			node, ok := nodeids[fk]
+			nodes, ok := nids[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "first_user_id" returned %v for node %v`, fk, n.ID)
+				return nil, fmt.Errorf(`unexpected "rooms" node returned %v`, n.ID)
 			}
-			node.Edges.MyPvChats = append(node.Edges.MyPvChats, n)
-		}
-	}
-
-	if query := uq.withOtherPvChats; query != nil {
-		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[int]*User)
-		for i := range nodes {
-			fks = append(fks, nodes[i].ID)
-			nodeids[nodes[i].ID] = nodes[i]
-			nodes[i].Edges.OtherPvChats = []*PrivateChat{}
-		}
-		query.Where(predicate.PrivateChat(func(s *sql.Selector) {
-			s.Where(sql.InValues(user.OtherPvChatsColumn, fks...))
-		}))
-		neighbors, err := query.All(ctx)
-		if err != nil {
-			return nil, err
-		}
-		for _, n := range neighbors {
-			fk := n.SecondUserID
-			node, ok := nodeids[fk]
-			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "second_user_id" returned %v for node %v`, fk, n.ID)
+			for kn := range nodes {
+				kn.Edges.Rooms = append(kn.Edges.Rooms, n)
 			}
-			node.Edges.OtherPvChats = append(node.Edges.OtherPvChats, n)
 		}
 	}
 

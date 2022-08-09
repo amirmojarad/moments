@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"moments/ent/post"
 	"moments/ent/predicate"
-	"moments/ent/privatechat"
+	"moments/ent/room"
 	"moments/ent/user"
 	"sync"
 	"time"
@@ -28,10 +28,9 @@ const (
 	TypeChannel     = "Channel"
 	TypeChannelPost = "ChannelPost"
 	TypeFile        = "File"
-	TypeGroup       = "Group"
+	TypeMessage     = "Message"
 	TypePost        = "Post"
-	TypePrivateChat = "PrivateChat"
-	TypePublicChat  = "PublicChat"
+	TypeRoom        = "Room"
 	TypeUser        = "User"
 )
 
@@ -782,29 +781,29 @@ func (m *FileMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown File edge %s", name)
 }
 
-// GroupMutation represents an operation that mutates the Group nodes in the graph.
-type GroupMutation struct {
+// MessageMutation represents an operation that mutates the Message nodes in the graph.
+type MessageMutation struct {
 	config
 	op            Op
 	typ           string
 	id            *int
 	clearedFields map[string]struct{}
 	done          bool
-	oldValue      func(context.Context) (*Group, error)
-	predicates    []predicate.Group
+	oldValue      func(context.Context) (*Message, error)
+	predicates    []predicate.Message
 }
 
-var _ ent.Mutation = (*GroupMutation)(nil)
+var _ ent.Mutation = (*MessageMutation)(nil)
 
-// groupOption allows management of the mutation configuration using functional options.
-type groupOption func(*GroupMutation)
+// messageOption allows management of the mutation configuration using functional options.
+type messageOption func(*MessageMutation)
 
-// newGroupMutation creates new mutation for the Group entity.
-func newGroupMutation(c config, op Op, opts ...groupOption) *GroupMutation {
-	m := &GroupMutation{
+// newMessageMutation creates new mutation for the Message entity.
+func newMessageMutation(c config, op Op, opts ...messageOption) *MessageMutation {
+	m := &MessageMutation{
 		config:        c,
 		op:            op,
-		typ:           TypeGroup,
+		typ:           TypeMessage,
 		clearedFields: make(map[string]struct{}),
 	}
 	for _, opt := range opts {
@@ -813,20 +812,20 @@ func newGroupMutation(c config, op Op, opts ...groupOption) *GroupMutation {
 	return m
 }
 
-// withGroupID sets the ID field of the mutation.
-func withGroupID(id int) groupOption {
-	return func(m *GroupMutation) {
+// withMessageID sets the ID field of the mutation.
+func withMessageID(id int) messageOption {
+	return func(m *MessageMutation) {
 		var (
 			err   error
 			once  sync.Once
-			value *Group
+			value *Message
 		)
-		m.oldValue = func(ctx context.Context) (*Group, error) {
+		m.oldValue = func(ctx context.Context) (*Message, error) {
 			once.Do(func() {
 				if m.done {
 					err = errors.New("querying old values post mutation is not allowed")
 				} else {
-					value, err = m.Client().Group.Get(ctx, id)
+					value, err = m.Client().Message.Get(ctx, id)
 				}
 			})
 			return value, err
@@ -835,10 +834,10 @@ func withGroupID(id int) groupOption {
 	}
 }
 
-// withGroup sets the old Group of the mutation.
-func withGroup(node *Group) groupOption {
-	return func(m *GroupMutation) {
-		m.oldValue = func(context.Context) (*Group, error) {
+// withMessage sets the old Message of the mutation.
+func withMessage(node *Message) messageOption {
+	return func(m *MessageMutation) {
+		m.oldValue = func(context.Context) (*Message, error) {
 			return node, nil
 		}
 		m.id = &node.ID
@@ -847,7 +846,7 @@ func withGroup(node *Group) groupOption {
 
 // Client returns a new `ent.Client` from the mutation. If the mutation was
 // executed in a transaction (ent.Tx), a transactional client is returned.
-func (m GroupMutation) Client() *Client {
+func (m MessageMutation) Client() *Client {
 	client := &Client{config: m.config}
 	client.init()
 	return client
@@ -855,7 +854,7 @@ func (m GroupMutation) Client() *Client {
 
 // Tx returns an `ent.Tx` for mutations that were executed in transactions;
 // it returns an error otherwise.
-func (m GroupMutation) Tx() (*Tx, error) {
+func (m MessageMutation) Tx() (*Tx, error) {
 	if _, ok := m.driver.(*txDriver); !ok {
 		return nil, errors.New("ent: mutation is not running in a transaction")
 	}
@@ -866,7 +865,7 @@ func (m GroupMutation) Tx() (*Tx, error) {
 
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *GroupMutation) ID() (id int, exists bool) {
+func (m *MessageMutation) ID() (id int, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -877,7 +876,7 @@ func (m *GroupMutation) ID() (id int, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *GroupMutation) IDs(ctx context.Context) ([]int, error) {
+func (m *MessageMutation) IDs(ctx context.Context) ([]int, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
@@ -886,31 +885,31 @@ func (m *GroupMutation) IDs(ctx context.Context) ([]int, error) {
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
-		return m.Client().Group.Query().Where(m.predicates...).IDs(ctx)
+		return m.Client().Message.Query().Where(m.predicates...).IDs(ctx)
 	default:
 		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
 	}
 }
 
-// Where appends a list predicates to the GroupMutation builder.
-func (m *GroupMutation) Where(ps ...predicate.Group) {
+// Where appends a list predicates to the MessageMutation builder.
+func (m *MessageMutation) Where(ps ...predicate.Message) {
 	m.predicates = append(m.predicates, ps...)
 }
 
 // Op returns the operation name.
-func (m *GroupMutation) Op() Op {
+func (m *MessageMutation) Op() Op {
 	return m.op
 }
 
-// Type returns the node type of this mutation (Group).
-func (m *GroupMutation) Type() string {
+// Type returns the node type of this mutation (Message).
+func (m *MessageMutation) Type() string {
 	return m.typ
 }
 
 // Fields returns all fields that were changed during this mutation. Note that in
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
-func (m *GroupMutation) Fields() []string {
+func (m *MessageMutation) Fields() []string {
 	fields := make([]string, 0, 0)
 	return fields
 }
@@ -918,117 +917,117 @@ func (m *GroupMutation) Fields() []string {
 // Field returns the value of a field with the given name. The second boolean
 // return value indicates that this field was not set, or was not defined in the
 // schema.
-func (m *GroupMutation) Field(name string) (ent.Value, bool) {
+func (m *MessageMutation) Field(name string) (ent.Value, bool) {
 	return nil, false
 }
 
 // OldField returns the old value of the field from the database. An error is
 // returned if the mutation operation is not UpdateOne, or the query to the
 // database failed.
-func (m *GroupMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
-	return nil, fmt.Errorf("unknown Group field %s", name)
+func (m *MessageMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	return nil, fmt.Errorf("unknown Message field %s", name)
 }
 
 // SetField sets the value of a field with the given name. It returns an error if
 // the field is not defined in the schema, or if the type mismatched the field
 // type.
-func (m *GroupMutation) SetField(name string, value ent.Value) error {
+func (m *MessageMutation) SetField(name string, value ent.Value) error {
 	switch name {
 	}
-	return fmt.Errorf("unknown Group field %s", name)
+	return fmt.Errorf("unknown Message field %s", name)
 }
 
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
-func (m *GroupMutation) AddedFields() []string {
+func (m *MessageMutation) AddedFields() []string {
 	return nil
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
-func (m *GroupMutation) AddedField(name string) (ent.Value, bool) {
+func (m *MessageMutation) AddedField(name string) (ent.Value, bool) {
 	return nil, false
 }
 
 // AddField adds the value to the field with the given name. It returns an error if
 // the field is not defined in the schema, or if the type mismatched the field
 // type.
-func (m *GroupMutation) AddField(name string, value ent.Value) error {
-	return fmt.Errorf("unknown Group numeric field %s", name)
+func (m *MessageMutation) AddField(name string, value ent.Value) error {
+	return fmt.Errorf("unknown Message numeric field %s", name)
 }
 
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
-func (m *GroupMutation) ClearedFields() []string {
+func (m *MessageMutation) ClearedFields() []string {
 	return nil
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
 // cleared in this mutation.
-func (m *GroupMutation) FieldCleared(name string) bool {
+func (m *MessageMutation) FieldCleared(name string) bool {
 	_, ok := m.clearedFields[name]
 	return ok
 }
 
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
-func (m *GroupMutation) ClearField(name string) error {
-	return fmt.Errorf("unknown Group nullable field %s", name)
+func (m *MessageMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown Message nullable field %s", name)
 }
 
 // ResetField resets all changes in the mutation for the field with the given name.
 // It returns an error if the field is not defined in the schema.
-func (m *GroupMutation) ResetField(name string) error {
-	return fmt.Errorf("unknown Group field %s", name)
+func (m *MessageMutation) ResetField(name string) error {
+	return fmt.Errorf("unknown Message field %s", name)
 }
 
 // AddedEdges returns all edge names that were set/added in this mutation.
-func (m *GroupMutation) AddedEdges() []string {
+func (m *MessageMutation) AddedEdges() []string {
 	edges := make([]string, 0, 0)
 	return edges
 }
 
 // AddedIDs returns all IDs (to other nodes) that were added for the given edge
 // name in this mutation.
-func (m *GroupMutation) AddedIDs(name string) []ent.Value {
+func (m *MessageMutation) AddedIDs(name string) []ent.Value {
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
-func (m *GroupMutation) RemovedEdges() []string {
+func (m *MessageMutation) RemovedEdges() []string {
 	edges := make([]string, 0, 0)
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
-func (m *GroupMutation) RemovedIDs(name string) []ent.Value {
+func (m *MessageMutation) RemovedIDs(name string) []ent.Value {
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
-func (m *GroupMutation) ClearedEdges() []string {
+func (m *MessageMutation) ClearedEdges() []string {
 	edges := make([]string, 0, 0)
 	return edges
 }
 
 // EdgeCleared returns a boolean which indicates if the edge with the given name
 // was cleared in this mutation.
-func (m *GroupMutation) EdgeCleared(name string) bool {
+func (m *MessageMutation) EdgeCleared(name string) bool {
 	return false
 }
 
 // ClearEdge clears the value of the edge with the given name. It returns an error
 // if that edge is not defined in the schema.
-func (m *GroupMutation) ClearEdge(name string) error {
-	return fmt.Errorf("unknown Group unique edge %s", name)
+func (m *MessageMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown Message unique edge %s", name)
 }
 
 // ResetEdge resets all changes to the edge with the given name in this mutation.
 // It returns an error if the edge is not defined in the schema.
-func (m *GroupMutation) ResetEdge(name string) error {
-	return fmt.Errorf("unknown Group edge %s", name)
+func (m *MessageMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown Message edge %s", name)
 }
 
 // PostMutation represents an operation that mutates the Post nodes in the graph.
@@ -1778,538 +1777,34 @@ func (m *PostMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown Post edge %s", name)
 }
 
-// PrivateChatMutation represents an operation that mutates the PrivateChat nodes in the graph.
-type PrivateChatMutation struct {
-	config
-	op                 Op
-	typ                string
-	id                 *int
-	clearedFields      map[string]struct{}
-	first_user         *int
-	clearedfirst_user  bool
-	second_user        *int
-	clearedsecond_user bool
-	done               bool
-	oldValue           func(context.Context) (*PrivateChat, error)
-	predicates         []predicate.PrivateChat
-}
-
-var _ ent.Mutation = (*PrivateChatMutation)(nil)
-
-// privatechatOption allows management of the mutation configuration using functional options.
-type privatechatOption func(*PrivateChatMutation)
-
-// newPrivateChatMutation creates new mutation for the PrivateChat entity.
-func newPrivateChatMutation(c config, op Op, opts ...privatechatOption) *PrivateChatMutation {
-	m := &PrivateChatMutation{
-		config:        c,
-		op:            op,
-		typ:           TypePrivateChat,
-		clearedFields: make(map[string]struct{}),
-	}
-	for _, opt := range opts {
-		opt(m)
-	}
-	return m
-}
-
-// withPrivateChatID sets the ID field of the mutation.
-func withPrivateChatID(id int) privatechatOption {
-	return func(m *PrivateChatMutation) {
-		var (
-			err   error
-			once  sync.Once
-			value *PrivateChat
-		)
-		m.oldValue = func(ctx context.Context) (*PrivateChat, error) {
-			once.Do(func() {
-				if m.done {
-					err = errors.New("querying old values post mutation is not allowed")
-				} else {
-					value, err = m.Client().PrivateChat.Get(ctx, id)
-				}
-			})
-			return value, err
-		}
-		m.id = &id
-	}
-}
-
-// withPrivateChat sets the old PrivateChat of the mutation.
-func withPrivateChat(node *PrivateChat) privatechatOption {
-	return func(m *PrivateChatMutation) {
-		m.oldValue = func(context.Context) (*PrivateChat, error) {
-			return node, nil
-		}
-		m.id = &node.ID
-	}
-}
-
-// Client returns a new `ent.Client` from the mutation. If the mutation was
-// executed in a transaction (ent.Tx), a transactional client is returned.
-func (m PrivateChatMutation) Client() *Client {
-	client := &Client{config: m.config}
-	client.init()
-	return client
-}
-
-// Tx returns an `ent.Tx` for mutations that were executed in transactions;
-// it returns an error otherwise.
-func (m PrivateChatMutation) Tx() (*Tx, error) {
-	if _, ok := m.driver.(*txDriver); !ok {
-		return nil, errors.New("ent: mutation is not running in a transaction")
-	}
-	tx := &Tx{config: m.config}
-	tx.init()
-	return tx, nil
-}
-
-// ID returns the ID value in the mutation. Note that the ID is only available
-// if it was provided to the builder or after it was returned from the database.
-func (m *PrivateChatMutation) ID() (id int, exists bool) {
-	if m.id == nil {
-		return
-	}
-	return *m.id, true
-}
-
-// IDs queries the database and returns the entity ids that match the mutation's predicate.
-// That means, if the mutation is applied within a transaction with an isolation level such
-// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
-// or updated by the mutation.
-func (m *PrivateChatMutation) IDs(ctx context.Context) ([]int, error) {
-	switch {
-	case m.op.Is(OpUpdateOne | OpDeleteOne):
-		id, exists := m.ID()
-		if exists {
-			return []int{id}, nil
-		}
-		fallthrough
-	case m.op.Is(OpUpdate | OpDelete):
-		return m.Client().PrivateChat.Query().Where(m.predicates...).IDs(ctx)
-	default:
-		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
-	}
-}
-
-// SetFirstUserID sets the "first_user_id" field.
-func (m *PrivateChatMutation) SetFirstUserID(i int) {
-	m.first_user = &i
-}
-
-// FirstUserID returns the value of the "first_user_id" field in the mutation.
-func (m *PrivateChatMutation) FirstUserID() (r int, exists bool) {
-	v := m.first_user
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldFirstUserID returns the old "first_user_id" field's value of the PrivateChat entity.
-// If the PrivateChat object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *PrivateChatMutation) OldFirstUserID(ctx context.Context) (v int, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldFirstUserID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldFirstUserID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldFirstUserID: %w", err)
-	}
-	return oldValue.FirstUserID, nil
-}
-
-// ClearFirstUserID clears the value of the "first_user_id" field.
-func (m *PrivateChatMutation) ClearFirstUserID() {
-	m.first_user = nil
-	m.clearedFields[privatechat.FieldFirstUserID] = struct{}{}
-}
-
-// FirstUserIDCleared returns if the "first_user_id" field was cleared in this mutation.
-func (m *PrivateChatMutation) FirstUserIDCleared() bool {
-	_, ok := m.clearedFields[privatechat.FieldFirstUserID]
-	return ok
-}
-
-// ResetFirstUserID resets all changes to the "first_user_id" field.
-func (m *PrivateChatMutation) ResetFirstUserID() {
-	m.first_user = nil
-	delete(m.clearedFields, privatechat.FieldFirstUserID)
-}
-
-// SetSecondUserID sets the "second_user_id" field.
-func (m *PrivateChatMutation) SetSecondUserID(i int) {
-	m.second_user = &i
-}
-
-// SecondUserID returns the value of the "second_user_id" field in the mutation.
-func (m *PrivateChatMutation) SecondUserID() (r int, exists bool) {
-	v := m.second_user
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldSecondUserID returns the old "second_user_id" field's value of the PrivateChat entity.
-// If the PrivateChat object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *PrivateChatMutation) OldSecondUserID(ctx context.Context) (v int, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldSecondUserID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldSecondUserID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldSecondUserID: %w", err)
-	}
-	return oldValue.SecondUserID, nil
-}
-
-// ClearSecondUserID clears the value of the "second_user_id" field.
-func (m *PrivateChatMutation) ClearSecondUserID() {
-	m.second_user = nil
-	m.clearedFields[privatechat.FieldSecondUserID] = struct{}{}
-}
-
-// SecondUserIDCleared returns if the "second_user_id" field was cleared in this mutation.
-func (m *PrivateChatMutation) SecondUserIDCleared() bool {
-	_, ok := m.clearedFields[privatechat.FieldSecondUserID]
-	return ok
-}
-
-// ResetSecondUserID resets all changes to the "second_user_id" field.
-func (m *PrivateChatMutation) ResetSecondUserID() {
-	m.second_user = nil
-	delete(m.clearedFields, privatechat.FieldSecondUserID)
-}
-
-// ClearFirstUser clears the "first_user" edge to the User entity.
-func (m *PrivateChatMutation) ClearFirstUser() {
-	m.clearedfirst_user = true
-}
-
-// FirstUserCleared reports if the "first_user" edge to the User entity was cleared.
-func (m *PrivateChatMutation) FirstUserCleared() bool {
-	return m.FirstUserIDCleared() || m.clearedfirst_user
-}
-
-// FirstUserIDs returns the "first_user" edge IDs in the mutation.
-// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// FirstUserID instead. It exists only for internal usage by the builders.
-func (m *PrivateChatMutation) FirstUserIDs() (ids []int) {
-	if id := m.first_user; id != nil {
-		ids = append(ids, *id)
-	}
-	return
-}
-
-// ResetFirstUser resets all changes to the "first_user" edge.
-func (m *PrivateChatMutation) ResetFirstUser() {
-	m.first_user = nil
-	m.clearedfirst_user = false
-}
-
-// ClearSecondUser clears the "second_user" edge to the User entity.
-func (m *PrivateChatMutation) ClearSecondUser() {
-	m.clearedsecond_user = true
-}
-
-// SecondUserCleared reports if the "second_user" edge to the User entity was cleared.
-func (m *PrivateChatMutation) SecondUserCleared() bool {
-	return m.SecondUserIDCleared() || m.clearedsecond_user
-}
-
-// SecondUserIDs returns the "second_user" edge IDs in the mutation.
-// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// SecondUserID instead. It exists only for internal usage by the builders.
-func (m *PrivateChatMutation) SecondUserIDs() (ids []int) {
-	if id := m.second_user; id != nil {
-		ids = append(ids, *id)
-	}
-	return
-}
-
-// ResetSecondUser resets all changes to the "second_user" edge.
-func (m *PrivateChatMutation) ResetSecondUser() {
-	m.second_user = nil
-	m.clearedsecond_user = false
-}
-
-// Where appends a list predicates to the PrivateChatMutation builder.
-func (m *PrivateChatMutation) Where(ps ...predicate.PrivateChat) {
-	m.predicates = append(m.predicates, ps...)
-}
-
-// Op returns the operation name.
-func (m *PrivateChatMutation) Op() Op {
-	return m.op
-}
-
-// Type returns the node type of this mutation (PrivateChat).
-func (m *PrivateChatMutation) Type() string {
-	return m.typ
-}
-
-// Fields returns all fields that were changed during this mutation. Note that in
-// order to get all numeric fields that were incremented/decremented, call
-// AddedFields().
-func (m *PrivateChatMutation) Fields() []string {
-	fields := make([]string, 0, 2)
-	if m.first_user != nil {
-		fields = append(fields, privatechat.FieldFirstUserID)
-	}
-	if m.second_user != nil {
-		fields = append(fields, privatechat.FieldSecondUserID)
-	}
-	return fields
-}
-
-// Field returns the value of a field with the given name. The second boolean
-// return value indicates that this field was not set, or was not defined in the
-// schema.
-func (m *PrivateChatMutation) Field(name string) (ent.Value, bool) {
-	switch name {
-	case privatechat.FieldFirstUserID:
-		return m.FirstUserID()
-	case privatechat.FieldSecondUserID:
-		return m.SecondUserID()
-	}
-	return nil, false
-}
-
-// OldField returns the old value of the field from the database. An error is
-// returned if the mutation operation is not UpdateOne, or the query to the
-// database failed.
-func (m *PrivateChatMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
-	switch name {
-	case privatechat.FieldFirstUserID:
-		return m.OldFirstUserID(ctx)
-	case privatechat.FieldSecondUserID:
-		return m.OldSecondUserID(ctx)
-	}
-	return nil, fmt.Errorf("unknown PrivateChat field %s", name)
-}
-
-// SetField sets the value of a field with the given name. It returns an error if
-// the field is not defined in the schema, or if the type mismatched the field
-// type.
-func (m *PrivateChatMutation) SetField(name string, value ent.Value) error {
-	switch name {
-	case privatechat.FieldFirstUserID:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetFirstUserID(v)
-		return nil
-	case privatechat.FieldSecondUserID:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetSecondUserID(v)
-		return nil
-	}
-	return fmt.Errorf("unknown PrivateChat field %s", name)
-}
-
-// AddedFields returns all numeric fields that were incremented/decremented during
-// this mutation.
-func (m *PrivateChatMutation) AddedFields() []string {
-	var fields []string
-	return fields
-}
-
-// AddedField returns the numeric value that was incremented/decremented on a field
-// with the given name. The second boolean return value indicates that this field
-// was not set, or was not defined in the schema.
-func (m *PrivateChatMutation) AddedField(name string) (ent.Value, bool) {
-	switch name {
-	}
-	return nil, false
-}
-
-// AddField adds the value to the field with the given name. It returns an error if
-// the field is not defined in the schema, or if the type mismatched the field
-// type.
-func (m *PrivateChatMutation) AddField(name string, value ent.Value) error {
-	switch name {
-	}
-	return fmt.Errorf("unknown PrivateChat numeric field %s", name)
-}
-
-// ClearedFields returns all nullable fields that were cleared during this
-// mutation.
-func (m *PrivateChatMutation) ClearedFields() []string {
-	var fields []string
-	if m.FieldCleared(privatechat.FieldFirstUserID) {
-		fields = append(fields, privatechat.FieldFirstUserID)
-	}
-	if m.FieldCleared(privatechat.FieldSecondUserID) {
-		fields = append(fields, privatechat.FieldSecondUserID)
-	}
-	return fields
-}
-
-// FieldCleared returns a boolean indicating if a field with the given name was
-// cleared in this mutation.
-func (m *PrivateChatMutation) FieldCleared(name string) bool {
-	_, ok := m.clearedFields[name]
-	return ok
-}
-
-// ClearField clears the value of the field with the given name. It returns an
-// error if the field is not defined in the schema.
-func (m *PrivateChatMutation) ClearField(name string) error {
-	switch name {
-	case privatechat.FieldFirstUserID:
-		m.ClearFirstUserID()
-		return nil
-	case privatechat.FieldSecondUserID:
-		m.ClearSecondUserID()
-		return nil
-	}
-	return fmt.Errorf("unknown PrivateChat nullable field %s", name)
-}
-
-// ResetField resets all changes in the mutation for the field with the given name.
-// It returns an error if the field is not defined in the schema.
-func (m *PrivateChatMutation) ResetField(name string) error {
-	switch name {
-	case privatechat.FieldFirstUserID:
-		m.ResetFirstUserID()
-		return nil
-	case privatechat.FieldSecondUserID:
-		m.ResetSecondUserID()
-		return nil
-	}
-	return fmt.Errorf("unknown PrivateChat field %s", name)
-}
-
-// AddedEdges returns all edge names that were set/added in this mutation.
-func (m *PrivateChatMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
-	if m.first_user != nil {
-		edges = append(edges, privatechat.EdgeFirstUser)
-	}
-	if m.second_user != nil {
-		edges = append(edges, privatechat.EdgeSecondUser)
-	}
-	return edges
-}
-
-// AddedIDs returns all IDs (to other nodes) that were added for the given edge
-// name in this mutation.
-func (m *PrivateChatMutation) AddedIDs(name string) []ent.Value {
-	switch name {
-	case privatechat.EdgeFirstUser:
-		if id := m.first_user; id != nil {
-			return []ent.Value{*id}
-		}
-	case privatechat.EdgeSecondUser:
-		if id := m.second_user; id != nil {
-			return []ent.Value{*id}
-		}
-	}
-	return nil
-}
-
-// RemovedEdges returns all edge names that were removed in this mutation.
-func (m *PrivateChatMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
-	return edges
-}
-
-// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
-// the given name in this mutation.
-func (m *PrivateChatMutation) RemovedIDs(name string) []ent.Value {
-	switch name {
-	}
-	return nil
-}
-
-// ClearedEdges returns all edge names that were cleared in this mutation.
-func (m *PrivateChatMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
-	if m.clearedfirst_user {
-		edges = append(edges, privatechat.EdgeFirstUser)
-	}
-	if m.clearedsecond_user {
-		edges = append(edges, privatechat.EdgeSecondUser)
-	}
-	return edges
-}
-
-// EdgeCleared returns a boolean which indicates if the edge with the given name
-// was cleared in this mutation.
-func (m *PrivateChatMutation) EdgeCleared(name string) bool {
-	switch name {
-	case privatechat.EdgeFirstUser:
-		return m.clearedfirst_user
-	case privatechat.EdgeSecondUser:
-		return m.clearedsecond_user
-	}
-	return false
-}
-
-// ClearEdge clears the value of the edge with the given name. It returns an error
-// if that edge is not defined in the schema.
-func (m *PrivateChatMutation) ClearEdge(name string) error {
-	switch name {
-	case privatechat.EdgeFirstUser:
-		m.ClearFirstUser()
-		return nil
-	case privatechat.EdgeSecondUser:
-		m.ClearSecondUser()
-		return nil
-	}
-	return fmt.Errorf("unknown PrivateChat unique edge %s", name)
-}
-
-// ResetEdge resets all changes to the edge with the given name in this mutation.
-// It returns an error if the edge is not defined in the schema.
-func (m *PrivateChatMutation) ResetEdge(name string) error {
-	switch name {
-	case privatechat.EdgeFirstUser:
-		m.ResetFirstUser()
-		return nil
-	case privatechat.EdgeSecondUser:
-		m.ResetSecondUser()
-		return nil
-	}
-	return fmt.Errorf("unknown PrivateChat edge %s", name)
-}
-
-// PublicChatMutation represents an operation that mutates the PublicChat nodes in the graph.
-type PublicChatMutation struct {
+// RoomMutation represents an operation that mutates the Room nodes in the graph.
+type RoomMutation struct {
 	config
 	op            Op
 	typ           string
 	id            *int
+	title         *string
+	_type         *room.Type
 	clearedFields map[string]struct{}
+	users         map[int]struct{}
+	removedusers  map[int]struct{}
+	clearedusers  bool
 	done          bool
-	oldValue      func(context.Context) (*PublicChat, error)
-	predicates    []predicate.PublicChat
+	oldValue      func(context.Context) (*Room, error)
+	predicates    []predicate.Room
 }
 
-var _ ent.Mutation = (*PublicChatMutation)(nil)
+var _ ent.Mutation = (*RoomMutation)(nil)
 
-// publicchatOption allows management of the mutation configuration using functional options.
-type publicchatOption func(*PublicChatMutation)
+// roomOption allows management of the mutation configuration using functional options.
+type roomOption func(*RoomMutation)
 
-// newPublicChatMutation creates new mutation for the PublicChat entity.
-func newPublicChatMutation(c config, op Op, opts ...publicchatOption) *PublicChatMutation {
-	m := &PublicChatMutation{
+// newRoomMutation creates new mutation for the Room entity.
+func newRoomMutation(c config, op Op, opts ...roomOption) *RoomMutation {
+	m := &RoomMutation{
 		config:        c,
 		op:            op,
-		typ:           TypePublicChat,
+		typ:           TypeRoom,
 		clearedFields: make(map[string]struct{}),
 	}
 	for _, opt := range opts {
@@ -2318,20 +1813,20 @@ func newPublicChatMutation(c config, op Op, opts ...publicchatOption) *PublicCha
 	return m
 }
 
-// withPublicChatID sets the ID field of the mutation.
-func withPublicChatID(id int) publicchatOption {
-	return func(m *PublicChatMutation) {
+// withRoomID sets the ID field of the mutation.
+func withRoomID(id int) roomOption {
+	return func(m *RoomMutation) {
 		var (
 			err   error
 			once  sync.Once
-			value *PublicChat
+			value *Room
 		)
-		m.oldValue = func(ctx context.Context) (*PublicChat, error) {
+		m.oldValue = func(ctx context.Context) (*Room, error) {
 			once.Do(func() {
 				if m.done {
 					err = errors.New("querying old values post mutation is not allowed")
 				} else {
-					value, err = m.Client().PublicChat.Get(ctx, id)
+					value, err = m.Client().Room.Get(ctx, id)
 				}
 			})
 			return value, err
@@ -2340,10 +1835,10 @@ func withPublicChatID(id int) publicchatOption {
 	}
 }
 
-// withPublicChat sets the old PublicChat of the mutation.
-func withPublicChat(node *PublicChat) publicchatOption {
-	return func(m *PublicChatMutation) {
-		m.oldValue = func(context.Context) (*PublicChat, error) {
+// withRoom sets the old Room of the mutation.
+func withRoom(node *Room) roomOption {
+	return func(m *RoomMutation) {
+		m.oldValue = func(context.Context) (*Room, error) {
 			return node, nil
 		}
 		m.id = &node.ID
@@ -2352,7 +1847,7 @@ func withPublicChat(node *PublicChat) publicchatOption {
 
 // Client returns a new `ent.Client` from the mutation. If the mutation was
 // executed in a transaction (ent.Tx), a transactional client is returned.
-func (m PublicChatMutation) Client() *Client {
+func (m RoomMutation) Client() *Client {
 	client := &Client{config: m.config}
 	client.init()
 	return client
@@ -2360,7 +1855,7 @@ func (m PublicChatMutation) Client() *Client {
 
 // Tx returns an `ent.Tx` for mutations that were executed in transactions;
 // it returns an error otherwise.
-func (m PublicChatMutation) Tx() (*Tx, error) {
+func (m RoomMutation) Tx() (*Tx, error) {
 	if _, ok := m.driver.(*txDriver); !ok {
 		return nil, errors.New("ent: mutation is not running in a transaction")
 	}
@@ -2371,7 +1866,7 @@ func (m PublicChatMutation) Tx() (*Tx, error) {
 
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *PublicChatMutation) ID() (id int, exists bool) {
+func (m *RoomMutation) ID() (id int, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -2382,7 +1877,7 @@ func (m *PublicChatMutation) ID() (id int, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *PublicChatMutation) IDs(ctx context.Context) ([]int, error) {
+func (m *RoomMutation) IDs(ctx context.Context) ([]int, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
@@ -2391,185 +1886,408 @@ func (m *PublicChatMutation) IDs(ctx context.Context) ([]int, error) {
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
-		return m.Client().PublicChat.Query().Where(m.predicates...).IDs(ctx)
+		return m.Client().Room.Query().Where(m.predicates...).IDs(ctx)
 	default:
 		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
 	}
 }
 
-// Where appends a list predicates to the PublicChatMutation builder.
-func (m *PublicChatMutation) Where(ps ...predicate.PublicChat) {
+// SetTitle sets the "title" field.
+func (m *RoomMutation) SetTitle(s string) {
+	m.title = &s
+}
+
+// Title returns the value of the "title" field in the mutation.
+func (m *RoomMutation) Title() (r string, exists bool) {
+	v := m.title
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTitle returns the old "title" field's value of the Room entity.
+// If the Room object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RoomMutation) OldTitle(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTitle is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTitle requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTitle: %w", err)
+	}
+	return oldValue.Title, nil
+}
+
+// ClearTitle clears the value of the "title" field.
+func (m *RoomMutation) ClearTitle() {
+	m.title = nil
+	m.clearedFields[room.FieldTitle] = struct{}{}
+}
+
+// TitleCleared returns if the "title" field was cleared in this mutation.
+func (m *RoomMutation) TitleCleared() bool {
+	_, ok := m.clearedFields[room.FieldTitle]
+	return ok
+}
+
+// ResetTitle resets all changes to the "title" field.
+func (m *RoomMutation) ResetTitle() {
+	m.title = nil
+	delete(m.clearedFields, room.FieldTitle)
+}
+
+// SetType sets the "type" field.
+func (m *RoomMutation) SetType(r room.Type) {
+	m._type = &r
+}
+
+// GetType returns the value of the "type" field in the mutation.
+func (m *RoomMutation) GetType() (r room.Type, exists bool) {
+	v := m._type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldType returns the old "type" field's value of the Room entity.
+// If the Room object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RoomMutation) OldType(ctx context.Context) (v room.Type, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldType: %w", err)
+	}
+	return oldValue.Type, nil
+}
+
+// ResetType resets all changes to the "type" field.
+func (m *RoomMutation) ResetType() {
+	m._type = nil
+}
+
+// AddUserIDs adds the "users" edge to the User entity by ids.
+func (m *RoomMutation) AddUserIDs(ids ...int) {
+	if m.users == nil {
+		m.users = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.users[ids[i]] = struct{}{}
+	}
+}
+
+// ClearUsers clears the "users" edge to the User entity.
+func (m *RoomMutation) ClearUsers() {
+	m.clearedusers = true
+}
+
+// UsersCleared reports if the "users" edge to the User entity was cleared.
+func (m *RoomMutation) UsersCleared() bool {
+	return m.clearedusers
+}
+
+// RemoveUserIDs removes the "users" edge to the User entity by IDs.
+func (m *RoomMutation) RemoveUserIDs(ids ...int) {
+	if m.removedusers == nil {
+		m.removedusers = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.users, ids[i])
+		m.removedusers[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedUsers returns the removed IDs of the "users" edge to the User entity.
+func (m *RoomMutation) RemovedUsersIDs() (ids []int) {
+	for id := range m.removedusers {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// UsersIDs returns the "users" edge IDs in the mutation.
+func (m *RoomMutation) UsersIDs() (ids []int) {
+	for id := range m.users {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetUsers resets all changes to the "users" edge.
+func (m *RoomMutation) ResetUsers() {
+	m.users = nil
+	m.clearedusers = false
+	m.removedusers = nil
+}
+
+// Where appends a list predicates to the RoomMutation builder.
+func (m *RoomMutation) Where(ps ...predicate.Room) {
 	m.predicates = append(m.predicates, ps...)
 }
 
 // Op returns the operation name.
-func (m *PublicChatMutation) Op() Op {
+func (m *RoomMutation) Op() Op {
 	return m.op
 }
 
-// Type returns the node type of this mutation (PublicChat).
-func (m *PublicChatMutation) Type() string {
+// Type returns the node type of this mutation (Room).
+func (m *RoomMutation) Type() string {
 	return m.typ
 }
 
 // Fields returns all fields that were changed during this mutation. Note that in
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
-func (m *PublicChatMutation) Fields() []string {
-	fields := make([]string, 0, 0)
+func (m *RoomMutation) Fields() []string {
+	fields := make([]string, 0, 2)
+	if m.title != nil {
+		fields = append(fields, room.FieldTitle)
+	}
+	if m._type != nil {
+		fields = append(fields, room.FieldType)
+	}
 	return fields
 }
 
 // Field returns the value of a field with the given name. The second boolean
 // return value indicates that this field was not set, or was not defined in the
 // schema.
-func (m *PublicChatMutation) Field(name string) (ent.Value, bool) {
+func (m *RoomMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case room.FieldTitle:
+		return m.Title()
+	case room.FieldType:
+		return m.GetType()
+	}
 	return nil, false
 }
 
 // OldField returns the old value of the field from the database. An error is
 // returned if the mutation operation is not UpdateOne, or the query to the
 // database failed.
-func (m *PublicChatMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
-	return nil, fmt.Errorf("unknown PublicChat field %s", name)
+func (m *RoomMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case room.FieldTitle:
+		return m.OldTitle(ctx)
+	case room.FieldType:
+		return m.OldType(ctx)
+	}
+	return nil, fmt.Errorf("unknown Room field %s", name)
 }
 
 // SetField sets the value of a field with the given name. It returns an error if
 // the field is not defined in the schema, or if the type mismatched the field
 // type.
-func (m *PublicChatMutation) SetField(name string, value ent.Value) error {
+func (m *RoomMutation) SetField(name string, value ent.Value) error {
 	switch name {
+	case room.FieldTitle:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTitle(v)
+		return nil
+	case room.FieldType:
+		v, ok := value.(room.Type)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetType(v)
+		return nil
 	}
-	return fmt.Errorf("unknown PublicChat field %s", name)
+	return fmt.Errorf("unknown Room field %s", name)
 }
 
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
-func (m *PublicChatMutation) AddedFields() []string {
+func (m *RoomMutation) AddedFields() []string {
 	return nil
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
-func (m *PublicChatMutation) AddedField(name string) (ent.Value, bool) {
+func (m *RoomMutation) AddedField(name string) (ent.Value, bool) {
 	return nil, false
 }
 
 // AddField adds the value to the field with the given name. It returns an error if
 // the field is not defined in the schema, or if the type mismatched the field
 // type.
-func (m *PublicChatMutation) AddField(name string, value ent.Value) error {
-	return fmt.Errorf("unknown PublicChat numeric field %s", name)
+func (m *RoomMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown Room numeric field %s", name)
 }
 
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
-func (m *PublicChatMutation) ClearedFields() []string {
-	return nil
+func (m *RoomMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(room.FieldTitle) {
+		fields = append(fields, room.FieldTitle)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
 // cleared in this mutation.
-func (m *PublicChatMutation) FieldCleared(name string) bool {
+func (m *RoomMutation) FieldCleared(name string) bool {
 	_, ok := m.clearedFields[name]
 	return ok
 }
 
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
-func (m *PublicChatMutation) ClearField(name string) error {
-	return fmt.Errorf("unknown PublicChat nullable field %s", name)
+func (m *RoomMutation) ClearField(name string) error {
+	switch name {
+	case room.FieldTitle:
+		m.ClearTitle()
+		return nil
+	}
+	return fmt.Errorf("unknown Room nullable field %s", name)
 }
 
 // ResetField resets all changes in the mutation for the field with the given name.
 // It returns an error if the field is not defined in the schema.
-func (m *PublicChatMutation) ResetField(name string) error {
-	return fmt.Errorf("unknown PublicChat field %s", name)
+func (m *RoomMutation) ResetField(name string) error {
+	switch name {
+	case room.FieldTitle:
+		m.ResetTitle()
+		return nil
+	case room.FieldType:
+		m.ResetType()
+		return nil
+	}
+	return fmt.Errorf("unknown Room field %s", name)
 }
 
 // AddedEdges returns all edge names that were set/added in this mutation.
-func (m *PublicChatMutation) AddedEdges() []string {
-	edges := make([]string, 0, 0)
+func (m *RoomMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.users != nil {
+		edges = append(edges, room.EdgeUsers)
+	}
 	return edges
 }
 
 // AddedIDs returns all IDs (to other nodes) that were added for the given edge
 // name in this mutation.
-func (m *PublicChatMutation) AddedIDs(name string) []ent.Value {
+func (m *RoomMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case room.EdgeUsers:
+		ids := make([]ent.Value, 0, len(m.users))
+		for id := range m.users {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
-func (m *PublicChatMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 0)
+func (m *RoomMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.removedusers != nil {
+		edges = append(edges, room.EdgeUsers)
+	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
-func (m *PublicChatMutation) RemovedIDs(name string) []ent.Value {
+func (m *RoomMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case room.EdgeUsers:
+		ids := make([]ent.Value, 0, len(m.removedusers))
+		for id := range m.removedusers {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
-func (m *PublicChatMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 0)
+func (m *RoomMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedusers {
+		edges = append(edges, room.EdgeUsers)
+	}
 	return edges
 }
 
 // EdgeCleared returns a boolean which indicates if the edge with the given name
 // was cleared in this mutation.
-func (m *PublicChatMutation) EdgeCleared(name string) bool {
+func (m *RoomMutation) EdgeCleared(name string) bool {
+	switch name {
+	case room.EdgeUsers:
+		return m.clearedusers
+	}
 	return false
 }
 
 // ClearEdge clears the value of the edge with the given name. It returns an error
 // if that edge is not defined in the schema.
-func (m *PublicChatMutation) ClearEdge(name string) error {
-	return fmt.Errorf("unknown PublicChat unique edge %s", name)
+func (m *RoomMutation) ClearEdge(name string) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown Room unique edge %s", name)
 }
 
 // ResetEdge resets all changes to the edge with the given name in this mutation.
 // It returns an error if the edge is not defined in the schema.
-func (m *PublicChatMutation) ResetEdge(name string) error {
-	return fmt.Errorf("unknown PublicChat edge %s", name)
+func (m *RoomMutation) ResetEdge(name string) error {
+	switch name {
+	case room.EdgeUsers:
+		m.ResetUsers()
+		return nil
+	}
+	return fmt.Errorf("unknown Room edge %s", name)
 }
 
 // UserMutation represents an operation that mutates the User nodes in the graph.
 type UserMutation struct {
 	config
-	op                    Op
-	typ                   string
-	id                    *int
-	created_date          *time.Time
-	updated_date          *time.Time
-	deleted_date          *time.Time
-	username              *string
-	email                 *string
-	password              *string
-	full_name             *string
-	is_admin              *bool
-	is_staff              *bool
-	clearedFields         map[string]struct{}
-	posts                 map[int]struct{}
-	removedposts          map[int]struct{}
-	clearedposts          bool
-	followers             map[int]struct{}
-	removedfollowers      map[int]struct{}
-	clearedfollowers      bool
-	following             map[int]struct{}
-	removedfollowing      map[int]struct{}
-	clearedfollowing      bool
-	my_pv_chats           map[int]struct{}
-	removedmy_pv_chats    map[int]struct{}
-	clearedmy_pv_chats    bool
-	other_pv_chats        map[int]struct{}
-	removedother_pv_chats map[int]struct{}
-	clearedother_pv_chats bool
-	done                  bool
-	oldValue              func(context.Context) (*User, error)
-	predicates            []predicate.User
+	op               Op
+	typ              string
+	id               *int
+	created_date     *time.Time
+	updated_date     *time.Time
+	deleted_date     *time.Time
+	username         *string
+	email            *string
+	password         *string
+	full_name        *string
+	is_admin         *bool
+	is_staff         *bool
+	clearedFields    map[string]struct{}
+	posts            map[int]struct{}
+	removedposts     map[int]struct{}
+	clearedposts     bool
+	followers        map[int]struct{}
+	removedfollowers map[int]struct{}
+	clearedfollowers bool
+	following        map[int]struct{}
+	removedfollowing map[int]struct{}
+	clearedfollowing bool
+	rooms            map[int]struct{}
+	removedrooms     map[int]struct{}
+	clearedrooms     bool
+	done             bool
+	oldValue         func(context.Context) (*User, error)
+	predicates       []predicate.User
 }
 
 var _ ent.Mutation = (*UserMutation)(nil)
@@ -3208,112 +2926,58 @@ func (m *UserMutation) ResetFollowing() {
 	m.removedfollowing = nil
 }
 
-// AddMyPvChatIDs adds the "my_pv_chats" edge to the PrivateChat entity by ids.
-func (m *UserMutation) AddMyPvChatIDs(ids ...int) {
-	if m.my_pv_chats == nil {
-		m.my_pv_chats = make(map[int]struct{})
+// AddRoomIDs adds the "rooms" edge to the Room entity by ids.
+func (m *UserMutation) AddRoomIDs(ids ...int) {
+	if m.rooms == nil {
+		m.rooms = make(map[int]struct{})
 	}
 	for i := range ids {
-		m.my_pv_chats[ids[i]] = struct{}{}
+		m.rooms[ids[i]] = struct{}{}
 	}
 }
 
-// ClearMyPvChats clears the "my_pv_chats" edge to the PrivateChat entity.
-func (m *UserMutation) ClearMyPvChats() {
-	m.clearedmy_pv_chats = true
+// ClearRooms clears the "rooms" edge to the Room entity.
+func (m *UserMutation) ClearRooms() {
+	m.clearedrooms = true
 }
 
-// MyPvChatsCleared reports if the "my_pv_chats" edge to the PrivateChat entity was cleared.
-func (m *UserMutation) MyPvChatsCleared() bool {
-	return m.clearedmy_pv_chats
+// RoomsCleared reports if the "rooms" edge to the Room entity was cleared.
+func (m *UserMutation) RoomsCleared() bool {
+	return m.clearedrooms
 }
 
-// RemoveMyPvChatIDs removes the "my_pv_chats" edge to the PrivateChat entity by IDs.
-func (m *UserMutation) RemoveMyPvChatIDs(ids ...int) {
-	if m.removedmy_pv_chats == nil {
-		m.removedmy_pv_chats = make(map[int]struct{})
+// RemoveRoomIDs removes the "rooms" edge to the Room entity by IDs.
+func (m *UserMutation) RemoveRoomIDs(ids ...int) {
+	if m.removedrooms == nil {
+		m.removedrooms = make(map[int]struct{})
 	}
 	for i := range ids {
-		delete(m.my_pv_chats, ids[i])
-		m.removedmy_pv_chats[ids[i]] = struct{}{}
+		delete(m.rooms, ids[i])
+		m.removedrooms[ids[i]] = struct{}{}
 	}
 }
 
-// RemovedMyPvChats returns the removed IDs of the "my_pv_chats" edge to the PrivateChat entity.
-func (m *UserMutation) RemovedMyPvChatsIDs() (ids []int) {
-	for id := range m.removedmy_pv_chats {
+// RemovedRooms returns the removed IDs of the "rooms" edge to the Room entity.
+func (m *UserMutation) RemovedRoomsIDs() (ids []int) {
+	for id := range m.removedrooms {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// MyPvChatsIDs returns the "my_pv_chats" edge IDs in the mutation.
-func (m *UserMutation) MyPvChatsIDs() (ids []int) {
-	for id := range m.my_pv_chats {
+// RoomsIDs returns the "rooms" edge IDs in the mutation.
+func (m *UserMutation) RoomsIDs() (ids []int) {
+	for id := range m.rooms {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// ResetMyPvChats resets all changes to the "my_pv_chats" edge.
-func (m *UserMutation) ResetMyPvChats() {
-	m.my_pv_chats = nil
-	m.clearedmy_pv_chats = false
-	m.removedmy_pv_chats = nil
-}
-
-// AddOtherPvChatIDs adds the "other_pv_chats" edge to the PrivateChat entity by ids.
-func (m *UserMutation) AddOtherPvChatIDs(ids ...int) {
-	if m.other_pv_chats == nil {
-		m.other_pv_chats = make(map[int]struct{})
-	}
-	for i := range ids {
-		m.other_pv_chats[ids[i]] = struct{}{}
-	}
-}
-
-// ClearOtherPvChats clears the "other_pv_chats" edge to the PrivateChat entity.
-func (m *UserMutation) ClearOtherPvChats() {
-	m.clearedother_pv_chats = true
-}
-
-// OtherPvChatsCleared reports if the "other_pv_chats" edge to the PrivateChat entity was cleared.
-func (m *UserMutation) OtherPvChatsCleared() bool {
-	return m.clearedother_pv_chats
-}
-
-// RemoveOtherPvChatIDs removes the "other_pv_chats" edge to the PrivateChat entity by IDs.
-func (m *UserMutation) RemoveOtherPvChatIDs(ids ...int) {
-	if m.removedother_pv_chats == nil {
-		m.removedother_pv_chats = make(map[int]struct{})
-	}
-	for i := range ids {
-		delete(m.other_pv_chats, ids[i])
-		m.removedother_pv_chats[ids[i]] = struct{}{}
-	}
-}
-
-// RemovedOtherPvChats returns the removed IDs of the "other_pv_chats" edge to the PrivateChat entity.
-func (m *UserMutation) RemovedOtherPvChatsIDs() (ids []int) {
-	for id := range m.removedother_pv_chats {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// OtherPvChatsIDs returns the "other_pv_chats" edge IDs in the mutation.
-func (m *UserMutation) OtherPvChatsIDs() (ids []int) {
-	for id := range m.other_pv_chats {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// ResetOtherPvChats resets all changes to the "other_pv_chats" edge.
-func (m *UserMutation) ResetOtherPvChats() {
-	m.other_pv_chats = nil
-	m.clearedother_pv_chats = false
-	m.removedother_pv_chats = nil
+// ResetRooms resets all changes to the "rooms" edge.
+func (m *UserMutation) ResetRooms() {
+	m.rooms = nil
+	m.clearedrooms = false
+	m.removedrooms = nil
 }
 
 // Where appends a list predicates to the UserMutation builder.
@@ -3597,7 +3261,7 @@ func (m *UserMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *UserMutation) AddedEdges() []string {
-	edges := make([]string, 0, 5)
+	edges := make([]string, 0, 4)
 	if m.posts != nil {
 		edges = append(edges, user.EdgePosts)
 	}
@@ -3607,11 +3271,8 @@ func (m *UserMutation) AddedEdges() []string {
 	if m.following != nil {
 		edges = append(edges, user.EdgeFollowing)
 	}
-	if m.my_pv_chats != nil {
-		edges = append(edges, user.EdgeMyPvChats)
-	}
-	if m.other_pv_chats != nil {
-		edges = append(edges, user.EdgeOtherPvChats)
+	if m.rooms != nil {
+		edges = append(edges, user.EdgeRooms)
 	}
 	return edges
 }
@@ -3638,15 +3299,9 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
-	case user.EdgeMyPvChats:
-		ids := make([]ent.Value, 0, len(m.my_pv_chats))
-		for id := range m.my_pv_chats {
-			ids = append(ids, id)
-		}
-		return ids
-	case user.EdgeOtherPvChats:
-		ids := make([]ent.Value, 0, len(m.other_pv_chats))
-		for id := range m.other_pv_chats {
+	case user.EdgeRooms:
+		ids := make([]ent.Value, 0, len(m.rooms))
+		for id := range m.rooms {
 			ids = append(ids, id)
 		}
 		return ids
@@ -3656,7 +3311,7 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UserMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 5)
+	edges := make([]string, 0, 4)
 	if m.removedposts != nil {
 		edges = append(edges, user.EdgePosts)
 	}
@@ -3666,11 +3321,8 @@ func (m *UserMutation) RemovedEdges() []string {
 	if m.removedfollowing != nil {
 		edges = append(edges, user.EdgeFollowing)
 	}
-	if m.removedmy_pv_chats != nil {
-		edges = append(edges, user.EdgeMyPvChats)
-	}
-	if m.removedother_pv_chats != nil {
-		edges = append(edges, user.EdgeOtherPvChats)
+	if m.removedrooms != nil {
+		edges = append(edges, user.EdgeRooms)
 	}
 	return edges
 }
@@ -3697,15 +3349,9 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
-	case user.EdgeMyPvChats:
-		ids := make([]ent.Value, 0, len(m.removedmy_pv_chats))
-		for id := range m.removedmy_pv_chats {
-			ids = append(ids, id)
-		}
-		return ids
-	case user.EdgeOtherPvChats:
-		ids := make([]ent.Value, 0, len(m.removedother_pv_chats))
-		for id := range m.removedother_pv_chats {
+	case user.EdgeRooms:
+		ids := make([]ent.Value, 0, len(m.removedrooms))
+		for id := range m.removedrooms {
 			ids = append(ids, id)
 		}
 		return ids
@@ -3715,7 +3361,7 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *UserMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 5)
+	edges := make([]string, 0, 4)
 	if m.clearedposts {
 		edges = append(edges, user.EdgePosts)
 	}
@@ -3725,11 +3371,8 @@ func (m *UserMutation) ClearedEdges() []string {
 	if m.clearedfollowing {
 		edges = append(edges, user.EdgeFollowing)
 	}
-	if m.clearedmy_pv_chats {
-		edges = append(edges, user.EdgeMyPvChats)
-	}
-	if m.clearedother_pv_chats {
-		edges = append(edges, user.EdgeOtherPvChats)
+	if m.clearedrooms {
+		edges = append(edges, user.EdgeRooms)
 	}
 	return edges
 }
@@ -3744,10 +3387,8 @@ func (m *UserMutation) EdgeCleared(name string) bool {
 		return m.clearedfollowers
 	case user.EdgeFollowing:
 		return m.clearedfollowing
-	case user.EdgeMyPvChats:
-		return m.clearedmy_pv_chats
-	case user.EdgeOtherPvChats:
-		return m.clearedother_pv_chats
+	case user.EdgeRooms:
+		return m.clearedrooms
 	}
 	return false
 }
@@ -3773,11 +3414,8 @@ func (m *UserMutation) ResetEdge(name string) error {
 	case user.EdgeFollowing:
 		m.ResetFollowing()
 		return nil
-	case user.EdgeMyPvChats:
-		m.ResetMyPvChats()
-		return nil
-	case user.EdgeOtherPvChats:
-		m.ResetOtherPvChats()
+	case user.EdgeRooms:
+		m.ResetRooms()
 		return nil
 	}
 	return fmt.Errorf("unknown User edge %s", name)

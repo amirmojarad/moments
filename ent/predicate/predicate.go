@@ -15,17 +15,14 @@ type ChannelPost func(*sql.Selector)
 // File is the predicate function for file builders.
 type File func(*sql.Selector)
 
-// Group is the predicate function for group builders.
-type Group func(*sql.Selector)
+// Message is the predicate function for message builders.
+type Message func(*sql.Selector)
 
 // Post is the predicate function for post builders.
 type Post func(*sql.Selector)
 
-// PrivateChat is the predicate function for privatechat builders.
-type PrivateChat func(*sql.Selector)
-
-// PublicChat is the predicate function for publicchat builders.
-type PublicChat func(*sql.Selector)
+// Room is the predicate function for room builders.
+type Room func(*sql.Selector)
 
 // User is the predicate function for user builders.
 type User func(*sql.Selector)

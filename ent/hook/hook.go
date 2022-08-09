@@ -47,15 +47,15 @@ func (f FileFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error)
 	return f(ctx, mv)
 }
 
-// The GroupFunc type is an adapter to allow the use of ordinary
-// function as Group mutator.
-type GroupFunc func(context.Context, *ent.GroupMutation) (ent.Value, error)
+// The MessageFunc type is an adapter to allow the use of ordinary
+// function as Message mutator.
+type MessageFunc func(context.Context, *ent.MessageMutation) (ent.Value, error)
 
 // Mutate calls f(ctx, m).
-func (f GroupFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.GroupMutation)
+func (f MessageFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.MessageMutation)
 	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.GroupMutation", m)
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.MessageMutation", m)
 	}
 	return f(ctx, mv)
 }
@@ -73,28 +73,15 @@ func (f PostFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error)
 	return f(ctx, mv)
 }
 
-// The PrivateChatFunc type is an adapter to allow the use of ordinary
-// function as PrivateChat mutator.
-type PrivateChatFunc func(context.Context, *ent.PrivateChatMutation) (ent.Value, error)
+// The RoomFunc type is an adapter to allow the use of ordinary
+// function as Room mutator.
+type RoomFunc func(context.Context, *ent.RoomMutation) (ent.Value, error)
 
 // Mutate calls f(ctx, m).
-func (f PrivateChatFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.PrivateChatMutation)
+func (f RoomFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.RoomMutation)
 	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.PrivateChatMutation", m)
-	}
-	return f(ctx, mv)
-}
-
-// The PublicChatFunc type is an adapter to allow the use of ordinary
-// function as PublicChat mutator.
-type PublicChatFunc func(context.Context, *ent.PublicChatMutation) (ent.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f PublicChatFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.PublicChatMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.PublicChatMutation", m)
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.RoomMutation", m)
 	}
 	return f(ctx, mv)
 }

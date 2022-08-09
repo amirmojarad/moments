@@ -35,10 +35,8 @@ const (
 	EdgeFollowers = "followers"
 	// EdgeFollowing holds the string denoting the following edge name in mutations.
 	EdgeFollowing = "following"
-	// EdgeMyPvChats holds the string denoting the my_pv_chats edge name in mutations.
-	EdgeMyPvChats = "my_pv_chats"
-	// EdgeOtherPvChats holds the string denoting the other_pv_chats edge name in mutations.
-	EdgeOtherPvChats = "other_pv_chats"
+	// EdgeRooms holds the string denoting the rooms edge name in mutations.
+	EdgeRooms = "rooms"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// PostsTable is the table that holds the posts relation/edge.
@@ -52,20 +50,11 @@ const (
 	FollowersTable = "user_following"
 	// FollowingTable is the table that holds the following relation/edge. The primary key declared below.
 	FollowingTable = "user_following"
-	// MyPvChatsTable is the table that holds the my_pv_chats relation/edge.
-	MyPvChatsTable = "private_chats"
-	// MyPvChatsInverseTable is the table name for the PrivateChat entity.
-	// It exists in this package in order to avoid circular dependency with the "privatechat" package.
-	MyPvChatsInverseTable = "private_chats"
-	// MyPvChatsColumn is the table column denoting the my_pv_chats relation/edge.
-	MyPvChatsColumn = "first_user_id"
-	// OtherPvChatsTable is the table that holds the other_pv_chats relation/edge.
-	OtherPvChatsTable = "private_chats"
-	// OtherPvChatsInverseTable is the table name for the PrivateChat entity.
-	// It exists in this package in order to avoid circular dependency with the "privatechat" package.
-	OtherPvChatsInverseTable = "private_chats"
-	// OtherPvChatsColumn is the table column denoting the other_pv_chats relation/edge.
-	OtherPvChatsColumn = "second_user_id"
+	// RoomsTable is the table that holds the rooms relation/edge. The primary key declared below.
+	RoomsTable = "user_rooms"
+	// RoomsInverseTable is the table name for the Room entity.
+	// It exists in this package in order to avoid circular dependency with the "room" package.
+	RoomsInverseTable = "rooms"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -89,6 +78,9 @@ var (
 	// FollowingPrimaryKey and FollowingColumn2 are the table columns denoting the
 	// primary key for the following relation (M2M).
 	FollowingPrimaryKey = []string{"user_id", "follower_id"}
+	// RoomsPrimaryKey and RoomsColumn2 are the table columns denoting the
+	// primary key for the rooms relation (M2M).
+	RoomsPrimaryKey = []string{"user_id", "room_id"}
 )
 
 // ValidColumn reports if the column name is valid (part of the table columns).

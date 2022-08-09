@@ -38,15 +38,15 @@ var (
 		Columns:    FilesColumns,
 		PrimaryKey: []*schema.Column{FilesColumns[0]},
 	}
-	// GroupsColumns holds the columns for the "groups" table.
-	GroupsColumns = []*schema.Column{
+	// MessagesColumns holds the columns for the "messages" table.
+	MessagesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 	}
-	// GroupsTable holds the schema information for the "groups" table.
-	GroupsTable = &schema.Table{
-		Name:       "groups",
-		Columns:    GroupsColumns,
-		PrimaryKey: []*schema.Column{GroupsColumns[0]},
+	// MessagesTable holds the schema information for the "messages" table.
+	MessagesTable = &schema.Table{
+		Name:       "messages",
+		Columns:    MessagesColumns,
+		PrimaryKey: []*schema.Column{MessagesColumns[0]},
 	}
 	// PostsColumns holds the columns for the "posts" table.
 	PostsColumns = []*schema.Column{
@@ -73,48 +73,17 @@ var (
 			},
 		},
 	}
-	// PrivateChatsColumns holds the columns for the "private_chats" table.
-	PrivateChatsColumns = []*schema.Column{
+	// RoomsColumns holds the columns for the "rooms" table.
+	RoomsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "first_user_id", Type: field.TypeInt, Nullable: true},
-		{Name: "second_user_id", Type: field.TypeInt, Nullable: true},
+		{Name: "title", Type: field.TypeString, Nullable: true, Size: 255},
+		{Name: "type", Type: field.TypeEnum, Enums: []string{"group", "private", "none"}, Default: "none"},
 	}
-	// PrivateChatsTable holds the schema information for the "private_chats" table.
-	PrivateChatsTable = &schema.Table{
-		Name:       "private_chats",
-		Columns:    PrivateChatsColumns,
-		PrimaryKey: []*schema.Column{PrivateChatsColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "private_chats_users_my_pv_chats",
-				Columns:    []*schema.Column{PrivateChatsColumns[1]},
-				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.SetNull,
-			},
-			{
-				Symbol:     "private_chats_users_other_pv_chats",
-				Columns:    []*schema.Column{PrivateChatsColumns[2]},
-				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.SetNull,
-			},
-		},
-		Indexes: []*schema.Index{
-			{
-				Name:    "privatechat_first_user_id_second_user_id",
-				Unique:  true,
-				Columns: []*schema.Column{PrivateChatsColumns[1], PrivateChatsColumns[2]},
-			},
-		},
-	}
-	// PublicChatsColumns holds the columns for the "public_chats" table.
-	PublicChatsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt, Increment: true},
-	}
-	// PublicChatsTable holds the schema information for the "public_chats" table.
-	PublicChatsTable = &schema.Table{
-		Name:       "public_chats",
-		Columns:    PublicChatsColumns,
-		PrimaryKey: []*schema.Column{PublicChatsColumns[0]},
+	// RoomsTable holds the schema information for the "rooms" table.
+	RoomsTable = &schema.Table{
+		Name:       "rooms",
+		Columns:    RoomsColumns,
+		PrimaryKey: []*schema.Column{RoomsColumns[0]},
 	}
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
@@ -160,24 +129,49 @@ var (
 			},
 		},
 	}
+	// UserRoomsColumns holds the columns for the "user_rooms" table.
+	UserRoomsColumns = []*schema.Column{
+		{Name: "user_id", Type: field.TypeInt},
+		{Name: "room_id", Type: field.TypeInt},
+	}
+	// UserRoomsTable holds the schema information for the "user_rooms" table.
+	UserRoomsTable = &schema.Table{
+		Name:       "user_rooms",
+		Columns:    UserRoomsColumns,
+		PrimaryKey: []*schema.Column{UserRoomsColumns[0], UserRoomsColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "user_rooms_user_id",
+				Columns:    []*schema.Column{UserRoomsColumns[0]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "user_rooms_room_id",
+				Columns:    []*schema.Column{UserRoomsColumns[1]},
+				RefColumns: []*schema.Column{RoomsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		ChannelsTable,
 		ChannelPostsTable,
 		FilesTable,
-		GroupsTable,
+		MessagesTable,
 		PostsTable,
-		PrivateChatsTable,
-		PublicChatsTable,
+		RoomsTable,
 		UsersTable,
 		UserFollowingTable,
+		UserRoomsTable,
 	}
 )
 
 func init() {
 	PostsTable.ForeignKeys[0].RefTable = UsersTable
-	PrivateChatsTable.ForeignKeys[0].RefTable = UsersTable
-	PrivateChatsTable.ForeignKeys[1].RefTable = UsersTable
 	UserFollowingTable.ForeignKeys[0].RefTable = UsersTable
 	UserFollowingTable.ForeignKeys[1].RefTable = UsersTable
+	UserRoomsTable.ForeignKeys[0].RefTable = UsersTable
+	UserRoomsTable.ForeignKeys[1].RefTable = RoomsTable
 }

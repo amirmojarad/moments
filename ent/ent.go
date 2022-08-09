@@ -9,10 +9,9 @@ import (
 	"moments/ent/channel"
 	"moments/ent/channelpost"
 	"moments/ent/file"
-	"moments/ent/group"
+	"moments/ent/message"
 	"moments/ent/post"
-	"moments/ent/privatechat"
-	"moments/ent/publicchat"
+	"moments/ent/room"
 	"moments/ent/user"
 
 	"entgo.io/ent"
@@ -41,10 +40,9 @@ func columnChecker(table string) func(string) error {
 		channel.Table:     channel.ValidColumn,
 		channelpost.Table: channelpost.ValidColumn,
 		file.Table:        file.ValidColumn,
-		group.Table:       group.ValidColumn,
+		message.Table:     message.ValidColumn,
 		post.Table:        post.ValidColumn,
-		privatechat.Table: privatechat.ValidColumn,
-		publicchat.Table:  publicchat.ValidColumn,
+		room.Table:        room.ValidColumn,
 		user.Table:        user.ValidColumn,
 	}
 	check, ok := checks[table]

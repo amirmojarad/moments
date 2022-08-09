@@ -5,65 +5,65 @@ package ent
 import (
 	"context"
 	"fmt"
-	"moments/ent/group"
+	"moments/ent/message"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 )
 
-// GroupCreate is the builder for creating a Group entity.
-type GroupCreate struct {
+// MessageCreate is the builder for creating a Message entity.
+type MessageCreate struct {
 	config
-	mutation *GroupMutation
+	mutation *MessageMutation
 	hooks    []Hook
 }
 
-// Mutation returns the GroupMutation object of the builder.
-func (gc *GroupCreate) Mutation() *GroupMutation {
-	return gc.mutation
+// Mutation returns the MessageMutation object of the builder.
+func (mc *MessageCreate) Mutation() *MessageMutation {
+	return mc.mutation
 }
 
-// Save creates the Group in the database.
-func (gc *GroupCreate) Save(ctx context.Context) (*Group, error) {
+// Save creates the Message in the database.
+func (mc *MessageCreate) Save(ctx context.Context) (*Message, error) {
 	var (
 		err  error
-		node *Group
+		node *Message
 	)
-	if len(gc.hooks) == 0 {
-		if err = gc.check(); err != nil {
+	if len(mc.hooks) == 0 {
+		if err = mc.check(); err != nil {
 			return nil, err
 		}
-		node, err = gc.sqlSave(ctx)
+		node, err = mc.sqlSave(ctx)
 	} else {
 		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*GroupMutation)
+			mutation, ok := m.(*MessageMutation)
 			if !ok {
 				return nil, fmt.Errorf("unexpected mutation type %T", m)
 			}
-			if err = gc.check(); err != nil {
+			if err = mc.check(); err != nil {
 				return nil, err
 			}
-			gc.mutation = mutation
-			if node, err = gc.sqlSave(ctx); err != nil {
+			mc.mutation = mutation
+			if node, err = mc.sqlSave(ctx); err != nil {
 				return nil, err
 			}
 			mutation.id = &node.ID
 			mutation.done = true
 			return node, err
 		})
-		for i := len(gc.hooks) - 1; i >= 0; i-- {
-			if gc.hooks[i] == nil {
+		for i := len(mc.hooks) - 1; i >= 0; i-- {
+			if mc.hooks[i] == nil {
 				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
 			}
-			mut = gc.hooks[i](mut)
+			mut = mc.hooks[i](mut)
 		}
-		v, err := mut.Mutate(ctx, gc.mutation)
+		v, err := mut.Mutate(ctx, mc.mutation)
 		if err != nil {
 			return nil, err
 		}
-		nv, ok := v.(*Group)
+		nv, ok := v.(*Message)
 		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from GroupMutation", v)
+			return nil, fmt.Errorf("unexpected node type %T returned from MessageMutation", v)
 		}
 		node = nv
 	}
@@ -71,8 +71,8 @@ func (gc *GroupCreate) Save(ctx context.Context) (*Group, error) {
 }
 
 // SaveX calls Save and panics if Save returns an error.
-func (gc *GroupCreate) SaveX(ctx context.Context) *Group {
-	v, err := gc.Save(ctx)
+func (mc *MessageCreate) SaveX(ctx context.Context) *Message {
+	v, err := mc.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -80,26 +80,26 @@ func (gc *GroupCreate) SaveX(ctx context.Context) *Group {
 }
 
 // Exec executes the query.
-func (gc *GroupCreate) Exec(ctx context.Context) error {
-	_, err := gc.Save(ctx)
+func (mc *MessageCreate) Exec(ctx context.Context) error {
+	_, err := mc.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (gc *GroupCreate) ExecX(ctx context.Context) {
-	if err := gc.Exec(ctx); err != nil {
+func (mc *MessageCreate) ExecX(ctx context.Context) {
+	if err := mc.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
 // check runs all checks and user-defined validators on the builder.
-func (gc *GroupCreate) check() error {
+func (mc *MessageCreate) check() error {
 	return nil
 }
 
-func (gc *GroupCreate) sqlSave(ctx context.Context) (*Group, error) {
-	_node, _spec := gc.createSpec()
-	if err := sqlgraph.CreateNode(ctx, gc.driver, _spec); err != nil {
+func (mc *MessageCreate) sqlSave(ctx context.Context) (*Message, error) {
+	_node, _spec := mc.createSpec()
+	if err := sqlgraph.CreateNode(ctx, mc.driver, _spec); err != nil {
 		if sqlgraph.IsConstraintError(err) {
 			err = &ConstraintError{msg: err.Error(), wrap: err}
 		}
@@ -110,36 +110,36 @@ func (gc *GroupCreate) sqlSave(ctx context.Context) (*Group, error) {
 	return _node, nil
 }
 
-func (gc *GroupCreate) createSpec() (*Group, *sqlgraph.CreateSpec) {
+func (mc *MessageCreate) createSpec() (*Message, *sqlgraph.CreateSpec) {
 	var (
-		_node = &Group{config: gc.config}
+		_node = &Message{config: mc.config}
 		_spec = &sqlgraph.CreateSpec{
-			Table: group.Table,
+			Table: message.Table,
 			ID: &sqlgraph.FieldSpec{
 				Type:   field.TypeInt,
-				Column: group.FieldID,
+				Column: message.FieldID,
 			},
 		}
 	)
 	return _node, _spec
 }
 
-// GroupCreateBulk is the builder for creating many Group entities in bulk.
-type GroupCreateBulk struct {
+// MessageCreateBulk is the builder for creating many Message entities in bulk.
+type MessageCreateBulk struct {
 	config
-	builders []*GroupCreate
+	builders []*MessageCreate
 }
 
-// Save creates the Group entities in the database.
-func (gcb *GroupCreateBulk) Save(ctx context.Context) ([]*Group, error) {
-	specs := make([]*sqlgraph.CreateSpec, len(gcb.builders))
-	nodes := make([]*Group, len(gcb.builders))
-	mutators := make([]Mutator, len(gcb.builders))
-	for i := range gcb.builders {
+// Save creates the Message entities in the database.
+func (mcb *MessageCreateBulk) Save(ctx context.Context) ([]*Message, error) {
+	specs := make([]*sqlgraph.CreateSpec, len(mcb.builders))
+	nodes := make([]*Message, len(mcb.builders))
+	mutators := make([]Mutator, len(mcb.builders))
+	for i := range mcb.builders {
 		func(i int, root context.Context) {
-			builder := gcb.builders[i]
+			builder := mcb.builders[i]
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-				mutation, ok := m.(*GroupMutation)
+				mutation, ok := m.(*MessageMutation)
 				if !ok {
 					return nil, fmt.Errorf("unexpected mutation type %T", m)
 				}
@@ -150,11 +150,11 @@ func (gcb *GroupCreateBulk) Save(ctx context.Context) ([]*Group, error) {
 				nodes[i], specs[i] = builder.createSpec()
 				var err error
 				if i < len(mutators)-1 {
-					_, err = mutators[i+1].Mutate(root, gcb.builders[i+1].mutation)
+					_, err = mutators[i+1].Mutate(root, mcb.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
 					// Invoke the actual operation on the latest mutation in the chain.
-					if err = sqlgraph.BatchCreate(ctx, gcb.driver, spec); err != nil {
+					if err = sqlgraph.BatchCreate(ctx, mcb.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
 							err = &ConstraintError{msg: err.Error(), wrap: err}
 						}
@@ -178,7 +178,7 @@ func (gcb *GroupCreateBulk) Save(ctx context.Context) ([]*Group, error) {
 		}(i, ctx)
 	}
 	if len(mutators) > 0 {
-		if _, err := mutators[0].Mutate(ctx, gcb.builders[0].mutation); err != nil {
+		if _, err := mutators[0].Mutate(ctx, mcb.builders[0].mutation); err != nil {
 			return nil, err
 		}
 	}
@@ -186,8 +186,8 @@ func (gcb *GroupCreateBulk) Save(ctx context.Context) ([]*Group, error) {
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (gcb *GroupCreateBulk) SaveX(ctx context.Context) []*Group {
-	v, err := gcb.Save(ctx)
+func (mcb *MessageCreateBulk) SaveX(ctx context.Context) []*Message {
+	v, err := mcb.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -195,14 +195,14 @@ func (gcb *GroupCreateBulk) SaveX(ctx context.Context) []*Group {
 }
 
 // Exec executes the query.
-func (gcb *GroupCreateBulk) Exec(ctx context.Context) error {
-	_, err := gcb.Save(ctx)
+func (mcb *MessageCreateBulk) Exec(ctx context.Context) error {
+	_, err := mcb.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (gcb *GroupCreateBulk) ExecX(ctx context.Context) {
-	if err := gcb.Exec(ctx); err != nil {
+func (mcb *MessageCreateBulk) ExecX(ctx context.Context) {
+	if err := mcb.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

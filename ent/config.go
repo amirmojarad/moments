@@ -27,10 +27,9 @@ type hooks struct {
 	Channel     []ent.Hook
 	ChannelPost []ent.Hook
 	File        []ent.Hook
-	Group       []ent.Hook
+	Message     []ent.Hook
 	Post        []ent.Hook
-	PrivateChat []ent.Hook
-	PublicChat  []ent.Hook
+	Room        []ent.Hook
 	User        []ent.Hook
 }
 
