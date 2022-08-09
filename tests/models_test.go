@@ -4,6 +4,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"moments/db"
 	"moments/ent"
+	"moments/messages"
 	"moments/post"
 	"moments/room"
 	"moments/user"
@@ -307,4 +308,35 @@ func TestCreatePublicRoom(t *testing.T) {
 	result, err = room.IsUserInRoom(dbc, thirdUser, newPublicRoom.ID)
 	assert.Nil(t, err)
 	assert.True(t, result)
+}
+
+func TestCreateMessage(t *testing.T) {
+	dbc, cancel := db.NewTestDB()
+	defer dbc.Client.Close()
+	defer cancel()
+
+	firstUser := createTestUser(t, dbc, "firstUser", "firstUser@email.com")
+	defer deleteUser(t, dbc, firstUser)
+
+	secondUser := createTestUser(t, dbc, "secondUser", "seconduser@email.com")
+	defer deleteUser(t, dbc, secondUser)
+
+	newPrivateRoom, err := room.CreatePrivateRoom(dbc, firstUser, secondUser)
+	assert.Nil(t, err)
+	assert.NotNil(t, newPrivateRoom)
+
+	newMessage, err := messages.Create(dbc, firstUser, newPrivateRoom, "test text")
+	assert.Nil(t, err)
+	assert.NotNil(t, newMessage)
+	assert.Equal(t, newMessage.Text, "test text")
+
+	senderUser, err := messages.GetMessageSenderUser(dbc, newMessage)
+	assert.Nil(t, err)
+	assert.NotNil(t, senderUser)
+	assert.Equal(t, senderUser.Username, firstUser.Username)
+
+	roomOwner, err := messages.GetMessageRoomOwner(dbc, newMessage)
+	assert.Nil(t, err)
+	assert.NotNil(t, senderUser)
+	assert.Equal(t, newPrivateRoom.ID, roomOwner.ID)
 }
