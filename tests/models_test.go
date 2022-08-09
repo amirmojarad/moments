@@ -5,7 +5,7 @@ import (
 	"moments/db"
 	"moments/ent"
 	"moments/post"
-	"moments/privateChat"
+	"moments/room"
 	"moments/user"
 	"testing"
 )
@@ -14,11 +14,11 @@ func init() {
 	loadDbEnv()
 }
 
-func createTestUser(t *testing.T, connection *db.DatabaseConnection) *ent.User {
+func createTestUser(t *testing.T, connection *db.DatabaseConnection, username, email string) *ent.User {
 	u := &ent.User{
-		Username: "testuser",
+		Username: username,
 		Password: "testpass123",
-		Email:    "testuser@email.com",
+		Email:    email,
 	}
 	createdUser, err := user.CreateUser(connection, u)
 	if err != nil {
@@ -154,7 +154,7 @@ func TestPostCreate(t *testing.T) {
 	defer dbc.Client.Close()
 	defer cancel()
 
-	createdUser := createTestUser(t, dbc)
+	createdUser := createTestUser(t, dbc, "firstUser", "firstUser@email.com")
 
 	defer deleteUser(t, dbc, createdUser)
 
@@ -176,7 +176,7 @@ func TestUpdatePost(t *testing.T) {
 	defer dbc.Client.Close()
 	defer cancel()
 
-	createdUser := createTestUser(t, dbc)
+	createdUser := createTestUser(t, dbc, "firstUser", "firstUser@email.com")
 	defer deleteUser(t, dbc, createdUser)
 
 	p := &ent.Post{
@@ -202,20 +202,13 @@ func TestFollow(t *testing.T) {
 	defer dbc.Client.Close()
 	defer cancel()
 
-	firstUser := createTestUser(t, dbc)
+	firstUser := createTestUser(t, dbc, "firstUser", "firstUser@email.com")
 	defer deleteUser(t, dbc, firstUser)
 
-	su := &ent.User{
-		Username: "secondTestUser",
-		Email:    "secondTestUser@email.com",
-		Password: "testpass123",
-	}
-
-	secondUser, err := user.CreateUser(dbc, su)
-	assert.Nil(t, err)
+	secondUser := createTestUser(t, dbc, "secondUser", "seconduser@email.com")
 	defer deleteUser(t, dbc, secondUser)
 
-	firstUser, err = user.AddFollowing(dbc, firstUser, secondUser)
+	firstUser, err := user.AddFollowing(dbc, firstUser, secondUser)
 	assert.Nil(t, err)
 	assert.NotNil(t, firstUser)
 
@@ -241,20 +234,13 @@ func TestUnfollow(t *testing.T) {
 	defer dbc.Client.Close()
 	defer cancel()
 
-	firstUser := createTestUser(t, dbc)
+	firstUser := createTestUser(t, dbc, "firstUser", "firstUser@email.com")
 	defer deleteUser(t, dbc, firstUser)
 
-	su := &ent.User{
-		Username: "secondTestUser",
-		Email:    "secondTestUser@email.com",
-		Password: "testpass123",
-	}
-
-	secondUser, err := user.CreateUser(dbc, su)
-	assert.Nil(t, err)
+	secondUser := createTestUser(t, dbc, "secondUser", "seconduser@email.com")
 	defer deleteUser(t, dbc, secondUser)
 
-	firstUser, err = user.AddFollowing(dbc, firstUser, secondUser)
+	firstUser, err := user.AddFollowing(dbc, firstUser, secondUser)
 	assert.Nil(t, err)
 	assert.NotNil(t, firstUser)
 	following, err := user.GetAllFollowing(dbc, firstUser)
@@ -268,59 +254,57 @@ func TestUnfollow(t *testing.T) {
 
 }
 
-func TestPvMessage(t *testing.T) {
+func TestCreatePrivateRoom(t *testing.T) {
 	dbc, cancel := db.NewTestDB()
 	defer dbc.Client.Close()
 	defer cancel()
 
-	firstUser := createTestUser(t, dbc)
+	firstUser := createTestUser(t, dbc, "firstUser", "firstUser@email.com")
 	defer deleteUser(t, dbc, firstUser)
 
-	su := &ent.User{
-		Username: "secondTestUser",
-		Email:    "secondTestUser@email.com",
-		Password: "testpass123",
-	}
-
-	secondUser, err := user.CreateUser(dbc, su)
-	assert.Nil(t, err)
+	secondUser := createTestUser(t, dbc, "secondUser", "seconduser@email.com")
 	defer deleteUser(t, dbc, secondUser)
 
-	pvMessage, err := privateChat.CreatePrivateChat(dbc, firstUser, secondUser)
+	newPrivateRoom, err := room.CreatePrivateRoom(dbc, firstUser, secondUser)
 	assert.Nil(t, err)
+	assert.NotNil(t, newPrivateRoom)
 
-	ownerUser, err := privateChat.GetPrivateChatFirstUser(dbc, pvMessage)
-	receiverUser, err := privateChat.GetPrivateChatSecondUser(dbc, pvMessage)
+	result, err := room.IsUserInRoom(dbc, firstUser, newPrivateRoom.ID)
+	assert.Nil(t, err)
+	assert.True(t, result)
 
-	assert.Equal(t, firstUser.ID, ownerUser.ID)
-	assert.Equal(t, secondUser.ID, receiverUser.ID)
-
+	result, err = room.IsUserInRoom(dbc, secondUser, newPrivateRoom.ID)
+	assert.Nil(t, err)
+	assert.True(t, result)
 }
 
-func TestDuplicatePvMessage(t *testing.T) {
+func TestCreatePublicRoom(t *testing.T) {
 	dbc, cancel := db.NewTestDB()
 	defer dbc.Client.Close()
 	defer cancel()
 
-	firstUser := createTestUser(t, dbc)
+	firstUser := createTestUser(t, dbc, "firstUser", "firstUser@email.com")
 	defer deleteUser(t, dbc, firstUser)
 
-	su := &ent.User{
-		Username: "secondTestUser",
-		Email:    "secondTestUser@email.com",
-		Password: "testpass123",
-	}
-
-	secondUser, err := user.CreateUser(dbc, su)
-	assert.Nil(t, err)
+	secondUser := createTestUser(t, dbc, "secondUser", "seconduser@email.com")
 	defer deleteUser(t, dbc, secondUser)
 
-	firstPvMessage, err := privateChat.CreatePrivateChat(dbc, firstUser, secondUser)
+	thirdUser := createTestUser(t, dbc, "thirdUser", "thirdUser@email.com")
+	defer deleteUser(t, dbc, thirdUser)
+
+	newPublicRoom, err := room.CreatePublicRoom(dbc, "testGroup", firstUser, thirdUser, secondUser)
 	assert.Nil(t, err)
-	assert.NotNil(t, firstPvMessage)
+	assert.NotNil(t, newPublicRoom)
 
-	secondPvMessage, err := privateChat.CreatePrivateChat(dbc, firstUser, secondUser)
-	assert.NotNil(t, err)
-	assert.Nil(t, secondPvMessage)
+	result, err := room.IsUserInRoom(dbc, firstUser, newPublicRoom.ID)
+	assert.Nil(t, err)
+	assert.True(t, result)
 
+	result, err = room.IsUserInRoom(dbc, secondUser, newPublicRoom.ID)
+	assert.Nil(t, err)
+	assert.True(t, result)
+
+	result, err = room.IsUserInRoom(dbc, thirdUser, newPublicRoom.ID)
+	assert.Nil(t, err)
+	assert.True(t, result)
 }

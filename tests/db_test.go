@@ -27,7 +27,3 @@ func TestDatabaseConnection(t *testing.T) {
 		return
 	}
 }
-
-func TestTemp(t *testing.T) {
-
-}
