@@ -7,6 +7,7 @@ import (
 	"database/sql/driver"
 	"fmt"
 	"math"
+	"moments/ent/message"
 	"moments/ent/post"
 	"moments/ent/predicate"
 	"moments/ent/room"
@@ -31,6 +32,7 @@ type UserQuery struct {
 	withFollowers *UserQuery
 	withFollowing *UserQuery
 	withRooms     *RoomQuery
+	withMessages  *MessageQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -148,6 +150,28 @@ func (uq *UserQuery) QueryRooms() *RoomQuery {
 			sqlgraph.From(user.Table, user.FieldID, selector),
 			sqlgraph.To(room.Table, room.FieldID),
 			sqlgraph.Edge(sqlgraph.M2M, false, user.RoomsTable, user.RoomsPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryMessages chains the current query on the "messages" edge.
+func (uq *UserQuery) QueryMessages() *MessageQuery {
+	query := &MessageQuery{config: uq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := uq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(message.Table, message.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.MessagesTable, user.MessagesColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
 		return fromU, nil
@@ -340,6 +364,7 @@ func (uq *UserQuery) Clone() *UserQuery {
 		withFollowers: uq.withFollowers.Clone(),
 		withFollowing: uq.withFollowing.Clone(),
 		withRooms:     uq.withRooms.Clone(),
+		withMessages:  uq.withMessages.Clone(),
 		// clone intermediate query.
 		sql:    uq.sql.Clone(),
 		path:   uq.path,
@@ -388,6 +413,17 @@ func (uq *UserQuery) WithRooms(opts ...func(*RoomQuery)) *UserQuery {
 		opt(query)
 	}
 	uq.withRooms = query
+	return uq
+}
+
+// WithMessages tells the query-builder to eager-load the nodes that are connected to
+// the "messages" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithMessages(opts ...func(*MessageQuery)) *UserQuery {
+	query := &MessageQuery{config: uq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withMessages = query
 	return uq
 }
 
@@ -461,11 +497,12 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	var (
 		nodes       = []*User{}
 		_spec       = uq.querySpec()
-		loadedTypes = [4]bool{
+		loadedTypes = [5]bool{
 			uq.withPosts != nil,
 			uq.withFollowers != nil,
 			uq.withFollowing != nil,
 			uq.withRooms != nil,
+			uq.withMessages != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
@@ -672,6 +709,35 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			for kn := range nodes {
 				kn.Edges.Rooms = append(kn.Edges.Rooms, n)
 			}
+		}
+	}
+
+	if query := uq.withMessages; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[int]*User)
+		for i := range nodes {
+			fks = append(fks, nodes[i].ID)
+			nodeids[nodes[i].ID] = nodes[i]
+			nodes[i].Edges.Messages = []*Message{}
+		}
+		query.withFKs = true
+		query.Where(predicate.Message(func(s *sql.Selector) {
+			s.Where(sql.InValues(user.MessagesColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.user_messages
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "user_messages" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "user_messages" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.Messages = append(node.Edges.Messages, n)
 		}
 	}
 

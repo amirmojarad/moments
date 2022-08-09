@@ -3,6 +3,7 @@
 package ent
 
 import (
+	"moments/ent/message"
 	"moments/ent/post"
 	"moments/ent/room"
 	"moments/ent/schema"
@@ -14,6 +15,23 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	messageMixin := schema.Message{}.Mixin()
+	messageMixinFields0 := messageMixin[0].Fields()
+	_ = messageMixinFields0
+	messageFields := schema.Message{}.Fields()
+	_ = messageFields
+	// messageDescCreatedDate is the schema descriptor for created_date field.
+	messageDescCreatedDate := messageMixinFields0[0].Descriptor()
+	// message.DefaultCreatedDate holds the default value on creation for the created_date field.
+	message.DefaultCreatedDate = messageDescCreatedDate.Default.(time.Time)
+	// messageDescUpdatedDate is the schema descriptor for updated_date field.
+	messageDescUpdatedDate := messageMixinFields0[1].Descriptor()
+	// message.DefaultUpdatedDate holds the default value on creation for the updated_date field.
+	message.DefaultUpdatedDate = messageDescUpdatedDate.Default.(time.Time)
+	// messageDescText is the schema descriptor for text field.
+	messageDescText := messageFields[0].Descriptor()
+	// message.TextValidator is a validator for the "text" field. It is called by the builders before save.
+	message.TextValidator = messageDescText.Validators[0].(func(string) error)
 	postMixin := schema.Post{}.Mixin()
 	postMixinFields0 := postMixin[0].Fields()
 	_ = postMixinFields0
@@ -31,8 +49,19 @@ func init() {
 	postDescLikes := postFields[1].Descriptor()
 	// post.DefaultLikes holds the default value on creation for the likes field.
 	post.DefaultLikes = postDescLikes.Default.(uint64)
+	roomMixin := schema.Room{}.Mixin()
+	roomMixinFields0 := roomMixin[0].Fields()
+	_ = roomMixinFields0
 	roomFields := schema.Room{}.Fields()
 	_ = roomFields
+	// roomDescCreatedDate is the schema descriptor for created_date field.
+	roomDescCreatedDate := roomMixinFields0[0].Descriptor()
+	// room.DefaultCreatedDate holds the default value on creation for the created_date field.
+	room.DefaultCreatedDate = roomDescCreatedDate.Default.(time.Time)
+	// roomDescUpdatedDate is the schema descriptor for updated_date field.
+	roomDescUpdatedDate := roomMixinFields0[1].Descriptor()
+	// room.DefaultUpdatedDate holds the default value on creation for the updated_date field.
+	room.DefaultUpdatedDate = roomDescUpdatedDate.Default.(time.Time)
 	// roomDescTitle is the schema descriptor for title field.
 	roomDescTitle := roomFields[0].Descriptor()
 	// room.TitleValidator is a validator for the "title" field. It is called by the builders before save.

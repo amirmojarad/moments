@@ -7,6 +7,7 @@ import (
 	"database/sql/driver"
 	"fmt"
 	"math"
+	"moments/ent/message"
 	"moments/ent/predicate"
 	"moments/ent/room"
 	"moments/ent/user"
@@ -26,7 +27,8 @@ type RoomQuery struct {
 	fields     []string
 	predicates []predicate.Room
 	// eager-loading edges.
-	withUsers *UserQuery
+	withUsers    *UserQuery
+	withMessages *MessageQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -78,6 +80,28 @@ func (rq *RoomQuery) QueryUsers() *UserQuery {
 			sqlgraph.From(room.Table, room.FieldID, selector),
 			sqlgraph.To(user.Table, user.FieldID),
 			sqlgraph.Edge(sqlgraph.M2M, true, room.UsersTable, room.UsersPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(rq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryMessages chains the current query on the "messages" edge.
+func (rq *RoomQuery) QueryMessages() *MessageQuery {
+	query := &MessageQuery{config: rq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := rq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := rq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(room.Table, room.FieldID, selector),
+			sqlgraph.To(message.Table, message.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, room.MessagesTable, room.MessagesColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(rq.driver.Dialect(), step)
 		return fromU, nil
@@ -261,12 +285,13 @@ func (rq *RoomQuery) Clone() *RoomQuery {
 		return nil
 	}
 	return &RoomQuery{
-		config:     rq.config,
-		limit:      rq.limit,
-		offset:     rq.offset,
-		order:      append([]OrderFunc{}, rq.order...),
-		predicates: append([]predicate.Room{}, rq.predicates...),
-		withUsers:  rq.withUsers.Clone(),
+		config:       rq.config,
+		limit:        rq.limit,
+		offset:       rq.offset,
+		order:        append([]OrderFunc{}, rq.order...),
+		predicates:   append([]predicate.Room{}, rq.predicates...),
+		withUsers:    rq.withUsers.Clone(),
+		withMessages: rq.withMessages.Clone(),
 		// clone intermediate query.
 		sql:    rq.sql.Clone(),
 		path:   rq.path,
@@ -285,18 +310,29 @@ func (rq *RoomQuery) WithUsers(opts ...func(*UserQuery)) *RoomQuery {
 	return rq
 }
 
+// WithMessages tells the query-builder to eager-load the nodes that are connected to
+// the "messages" edge. The optional arguments are used to configure the query builder of the edge.
+func (rq *RoomQuery) WithMessages(opts ...func(*MessageQuery)) *RoomQuery {
+	query := &MessageQuery{config: rq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	rq.withMessages = query
+	return rq
+}
+
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
 // Example:
 //
 //	var v []struct {
-//		Title string `json:"title,omitempty"`
+//		CreatedDate time.Time `json:"created_date,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.Room.Query().
-//		GroupBy(room.FieldTitle).
+//		GroupBy(room.FieldCreatedDate).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 //
@@ -320,11 +356,11 @@ func (rq *RoomQuery) GroupBy(field string, fields ...string) *RoomGroupBy {
 // Example:
 //
 //	var v []struct {
-//		Title string `json:"title,omitempty"`
+//		CreatedDate time.Time `json:"created_date,omitempty"`
 //	}
 //
 //	client.Room.Query().
-//		Select(room.FieldTitle).
+//		Select(room.FieldCreatedDate).
 //		Scan(ctx, &v)
 //
 func (rq *RoomQuery) Select(fields ...string) *RoomSelect {
@@ -355,8 +391,9 @@ func (rq *RoomQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Room, e
 	var (
 		nodes       = []*Room{}
 		_spec       = rq.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [2]bool{
 			rq.withUsers != nil,
+			rq.withMessages != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
@@ -428,6 +465,35 @@ func (rq *RoomQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Room, e
 			for kn := range nodes {
 				kn.Edges.Users = append(kn.Edges.Users, n)
 			}
+		}
+	}
+
+	if query := rq.withMessages; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[int]*Room)
+		for i := range nodes {
+			fks = append(fks, nodes[i].ID)
+			nodeids[nodes[i].ID] = nodes[i]
+			nodes[i].Edges.Messages = []*Message{}
+		}
+		query.withFKs = true
+		query.Where(predicate.Message(func(s *sql.Selector) {
+			s.Where(sql.InValues(room.MessagesColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.room_messages
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "room_messages" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "room_messages" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.Messages = append(node.Edges.Messages, n)
 		}
 	}
 

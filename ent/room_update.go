@@ -6,9 +6,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"moments/ent/message"
 	"moments/ent/predicate"
 	"moments/ent/room"
 	"moments/ent/user"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -25,6 +27,54 @@ type RoomUpdate struct {
 // Where appends a list predicates to the RoomUpdate builder.
 func (ru *RoomUpdate) Where(ps ...predicate.Room) *RoomUpdate {
 	ru.mutation.Where(ps...)
+	return ru
+}
+
+// SetCreatedDate sets the "created_date" field.
+func (ru *RoomUpdate) SetCreatedDate(t time.Time) *RoomUpdate {
+	ru.mutation.SetCreatedDate(t)
+	return ru
+}
+
+// SetNillableCreatedDate sets the "created_date" field if the given value is not nil.
+func (ru *RoomUpdate) SetNillableCreatedDate(t *time.Time) *RoomUpdate {
+	if t != nil {
+		ru.SetCreatedDate(*t)
+	}
+	return ru
+}
+
+// SetUpdatedDate sets the "updated_date" field.
+func (ru *RoomUpdate) SetUpdatedDate(t time.Time) *RoomUpdate {
+	ru.mutation.SetUpdatedDate(t)
+	return ru
+}
+
+// SetNillableUpdatedDate sets the "updated_date" field if the given value is not nil.
+func (ru *RoomUpdate) SetNillableUpdatedDate(t *time.Time) *RoomUpdate {
+	if t != nil {
+		ru.SetUpdatedDate(*t)
+	}
+	return ru
+}
+
+// SetDeletedDate sets the "deleted_date" field.
+func (ru *RoomUpdate) SetDeletedDate(t time.Time) *RoomUpdate {
+	ru.mutation.SetDeletedDate(t)
+	return ru
+}
+
+// SetNillableDeletedDate sets the "deleted_date" field if the given value is not nil.
+func (ru *RoomUpdate) SetNillableDeletedDate(t *time.Time) *RoomUpdate {
+	if t != nil {
+		ru.SetDeletedDate(*t)
+	}
+	return ru
+}
+
+// ClearDeletedDate clears the value of the "deleted_date" field.
+func (ru *RoomUpdate) ClearDeletedDate() *RoomUpdate {
+	ru.mutation.ClearDeletedDate()
 	return ru
 }
 
@@ -77,6 +127,21 @@ func (ru *RoomUpdate) AddUsers(u ...*User) *RoomUpdate {
 	return ru.AddUserIDs(ids...)
 }
 
+// AddMessageIDs adds the "messages" edge to the Message entity by IDs.
+func (ru *RoomUpdate) AddMessageIDs(ids ...int) *RoomUpdate {
+	ru.mutation.AddMessageIDs(ids...)
+	return ru
+}
+
+// AddMessages adds the "messages" edges to the Message entity.
+func (ru *RoomUpdate) AddMessages(m ...*Message) *RoomUpdate {
+	ids := make([]int, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
+	}
+	return ru.AddMessageIDs(ids...)
+}
+
 // Mutation returns the RoomMutation object of the builder.
 func (ru *RoomUpdate) Mutation() *RoomMutation {
 	return ru.mutation
@@ -101,6 +166,27 @@ func (ru *RoomUpdate) RemoveUsers(u ...*User) *RoomUpdate {
 		ids[i] = u[i].ID
 	}
 	return ru.RemoveUserIDs(ids...)
+}
+
+// ClearMessages clears all "messages" edges to the Message entity.
+func (ru *RoomUpdate) ClearMessages() *RoomUpdate {
+	ru.mutation.ClearMessages()
+	return ru
+}
+
+// RemoveMessageIDs removes the "messages" edge to Message entities by IDs.
+func (ru *RoomUpdate) RemoveMessageIDs(ids ...int) *RoomUpdate {
+	ru.mutation.RemoveMessageIDs(ids...)
+	return ru
+}
+
+// RemoveMessages removes "messages" edges to Message entities.
+func (ru *RoomUpdate) RemoveMessages(m ...*Message) *RoomUpdate {
+	ids := make([]int, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
+	}
+	return ru.RemoveMessageIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -196,6 +282,33 @@ func (ru *RoomUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
+	if value, ok := ru.mutation.CreatedDate(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  value,
+			Column: room.FieldCreatedDate,
+		})
+	}
+	if value, ok := ru.mutation.UpdatedDate(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  value,
+			Column: room.FieldUpdatedDate,
+		})
+	}
+	if value, ok := ru.mutation.DeletedDate(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  value,
+			Column: room.FieldDeletedDate,
+		})
+	}
+	if ru.mutation.DeletedDateCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Column: room.FieldDeletedDate,
+		})
+	}
 	if value, ok := ru.mutation.Title(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
@@ -270,6 +383,60 @@ func (ru *RoomUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if ru.mutation.MessagesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   room.MessagesTable,
+			Columns: []string{room.MessagesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: message.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ru.mutation.RemovedMessagesIDs(); len(nodes) > 0 && !ru.mutation.MessagesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   room.MessagesTable,
+			Columns: []string{room.MessagesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: message.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ru.mutation.MessagesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   room.MessagesTable,
+			Columns: []string{room.MessagesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: message.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, ru.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{room.Label}
@@ -287,6 +454,54 @@ type RoomUpdateOne struct {
 	fields   []string
 	hooks    []Hook
 	mutation *RoomMutation
+}
+
+// SetCreatedDate sets the "created_date" field.
+func (ruo *RoomUpdateOne) SetCreatedDate(t time.Time) *RoomUpdateOne {
+	ruo.mutation.SetCreatedDate(t)
+	return ruo
+}
+
+// SetNillableCreatedDate sets the "created_date" field if the given value is not nil.
+func (ruo *RoomUpdateOne) SetNillableCreatedDate(t *time.Time) *RoomUpdateOne {
+	if t != nil {
+		ruo.SetCreatedDate(*t)
+	}
+	return ruo
+}
+
+// SetUpdatedDate sets the "updated_date" field.
+func (ruo *RoomUpdateOne) SetUpdatedDate(t time.Time) *RoomUpdateOne {
+	ruo.mutation.SetUpdatedDate(t)
+	return ruo
+}
+
+// SetNillableUpdatedDate sets the "updated_date" field if the given value is not nil.
+func (ruo *RoomUpdateOne) SetNillableUpdatedDate(t *time.Time) *RoomUpdateOne {
+	if t != nil {
+		ruo.SetUpdatedDate(*t)
+	}
+	return ruo
+}
+
+// SetDeletedDate sets the "deleted_date" field.
+func (ruo *RoomUpdateOne) SetDeletedDate(t time.Time) *RoomUpdateOne {
+	ruo.mutation.SetDeletedDate(t)
+	return ruo
+}
+
+// SetNillableDeletedDate sets the "deleted_date" field if the given value is not nil.
+func (ruo *RoomUpdateOne) SetNillableDeletedDate(t *time.Time) *RoomUpdateOne {
+	if t != nil {
+		ruo.SetDeletedDate(*t)
+	}
+	return ruo
+}
+
+// ClearDeletedDate clears the value of the "deleted_date" field.
+func (ruo *RoomUpdateOne) ClearDeletedDate() *RoomUpdateOne {
+	ruo.mutation.ClearDeletedDate()
+	return ruo
 }
 
 // SetTitle sets the "title" field.
@@ -338,6 +553,21 @@ func (ruo *RoomUpdateOne) AddUsers(u ...*User) *RoomUpdateOne {
 	return ruo.AddUserIDs(ids...)
 }
 
+// AddMessageIDs adds the "messages" edge to the Message entity by IDs.
+func (ruo *RoomUpdateOne) AddMessageIDs(ids ...int) *RoomUpdateOne {
+	ruo.mutation.AddMessageIDs(ids...)
+	return ruo
+}
+
+// AddMessages adds the "messages" edges to the Message entity.
+func (ruo *RoomUpdateOne) AddMessages(m ...*Message) *RoomUpdateOne {
+	ids := make([]int, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
+	}
+	return ruo.AddMessageIDs(ids...)
+}
+
 // Mutation returns the RoomMutation object of the builder.
 func (ruo *RoomUpdateOne) Mutation() *RoomMutation {
 	return ruo.mutation
@@ -362,6 +592,27 @@ func (ruo *RoomUpdateOne) RemoveUsers(u ...*User) *RoomUpdateOne {
 		ids[i] = u[i].ID
 	}
 	return ruo.RemoveUserIDs(ids...)
+}
+
+// ClearMessages clears all "messages" edges to the Message entity.
+func (ruo *RoomUpdateOne) ClearMessages() *RoomUpdateOne {
+	ruo.mutation.ClearMessages()
+	return ruo
+}
+
+// RemoveMessageIDs removes the "messages" edge to Message entities by IDs.
+func (ruo *RoomUpdateOne) RemoveMessageIDs(ids ...int) *RoomUpdateOne {
+	ruo.mutation.RemoveMessageIDs(ids...)
+	return ruo
+}
+
+// RemoveMessages removes "messages" edges to Message entities.
+func (ruo *RoomUpdateOne) RemoveMessages(m ...*Message) *RoomUpdateOne {
+	ids := make([]int, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
+	}
+	return ruo.RemoveMessageIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -487,6 +738,33 @@ func (ruo *RoomUpdateOne) sqlSave(ctx context.Context) (_node *Room, err error) 
 			}
 		}
 	}
+	if value, ok := ruo.mutation.CreatedDate(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  value,
+			Column: room.FieldCreatedDate,
+		})
+	}
+	if value, ok := ruo.mutation.UpdatedDate(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  value,
+			Column: room.FieldUpdatedDate,
+		})
+	}
+	if value, ok := ruo.mutation.DeletedDate(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  value,
+			Column: room.FieldDeletedDate,
+		})
+	}
+	if ruo.mutation.DeletedDateCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Column: room.FieldDeletedDate,
+		})
+	}
 	if value, ok := ruo.mutation.Title(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
@@ -553,6 +831,60 @@ func (ruo *RoomUpdateOne) sqlSave(ctx context.Context) (_node *Room, err error) 
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if ruo.mutation.MessagesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   room.MessagesTable,
+			Columns: []string{room.MessagesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: message.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ruo.mutation.RemovedMessagesIDs(); len(nodes) > 0 && !ruo.mutation.MessagesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   room.MessagesTable,
+			Columns: []string{room.MessagesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: message.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ruo.mutation.MessagesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   room.MessagesTable,
+			Columns: []string{room.MessagesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: message.FieldID,
 				},
 			},
 		}

@@ -6,8 +6,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"moments/ent/message"
 	"moments/ent/room"
 	"moments/ent/user"
+	"time"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -18,6 +20,48 @@ type RoomCreate struct {
 	config
 	mutation *RoomMutation
 	hooks    []Hook
+}
+
+// SetCreatedDate sets the "created_date" field.
+func (rc *RoomCreate) SetCreatedDate(t time.Time) *RoomCreate {
+	rc.mutation.SetCreatedDate(t)
+	return rc
+}
+
+// SetNillableCreatedDate sets the "created_date" field if the given value is not nil.
+func (rc *RoomCreate) SetNillableCreatedDate(t *time.Time) *RoomCreate {
+	if t != nil {
+		rc.SetCreatedDate(*t)
+	}
+	return rc
+}
+
+// SetUpdatedDate sets the "updated_date" field.
+func (rc *RoomCreate) SetUpdatedDate(t time.Time) *RoomCreate {
+	rc.mutation.SetUpdatedDate(t)
+	return rc
+}
+
+// SetNillableUpdatedDate sets the "updated_date" field if the given value is not nil.
+func (rc *RoomCreate) SetNillableUpdatedDate(t *time.Time) *RoomCreate {
+	if t != nil {
+		rc.SetUpdatedDate(*t)
+	}
+	return rc
+}
+
+// SetDeletedDate sets the "deleted_date" field.
+func (rc *RoomCreate) SetDeletedDate(t time.Time) *RoomCreate {
+	rc.mutation.SetDeletedDate(t)
+	return rc
+}
+
+// SetNillableDeletedDate sets the "deleted_date" field if the given value is not nil.
+func (rc *RoomCreate) SetNillableDeletedDate(t *time.Time) *RoomCreate {
+	if t != nil {
+		rc.SetDeletedDate(*t)
+	}
+	return rc
 }
 
 // SetTitle sets the "title" field.
@@ -61,6 +105,21 @@ func (rc *RoomCreate) AddUsers(u ...*User) *RoomCreate {
 		ids[i] = u[i].ID
 	}
 	return rc.AddUserIDs(ids...)
+}
+
+// AddMessageIDs adds the "messages" edge to the Message entity by IDs.
+func (rc *RoomCreate) AddMessageIDs(ids ...int) *RoomCreate {
+	rc.mutation.AddMessageIDs(ids...)
+	return rc
+}
+
+// AddMessages adds the "messages" edges to the Message entity.
+func (rc *RoomCreate) AddMessages(m ...*Message) *RoomCreate {
+	ids := make([]int, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
+	}
+	return rc.AddMessageIDs(ids...)
 }
 
 // Mutation returns the RoomMutation object of the builder.
@@ -140,6 +199,14 @@ func (rc *RoomCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (rc *RoomCreate) defaults() {
+	if _, ok := rc.mutation.CreatedDate(); !ok {
+		v := room.DefaultCreatedDate
+		rc.mutation.SetCreatedDate(v)
+	}
+	if _, ok := rc.mutation.UpdatedDate(); !ok {
+		v := room.DefaultUpdatedDate
+		rc.mutation.SetUpdatedDate(v)
+	}
 	if _, ok := rc.mutation.GetType(); !ok {
 		v := room.DefaultType
 		rc.mutation.SetType(v)
@@ -148,6 +215,12 @@ func (rc *RoomCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (rc *RoomCreate) check() error {
+	if _, ok := rc.mutation.CreatedDate(); !ok {
+		return &ValidationError{Name: "created_date", err: errors.New(`ent: missing required field "Room.created_date"`)}
+	}
+	if _, ok := rc.mutation.UpdatedDate(); !ok {
+		return &ValidationError{Name: "updated_date", err: errors.New(`ent: missing required field "Room.updated_date"`)}
+	}
 	if v, ok := rc.mutation.Title(); ok {
 		if err := room.TitleValidator(v); err != nil {
 			return &ValidationError{Name: "title", err: fmt.Errorf(`ent: validator failed for field "Room.title": %w`, err)}
@@ -188,6 +261,30 @@ func (rc *RoomCreate) createSpec() (*Room, *sqlgraph.CreateSpec) {
 			},
 		}
 	)
+	if value, ok := rc.mutation.CreatedDate(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  value,
+			Column: room.FieldCreatedDate,
+		})
+		_node.CreatedDate = value
+	}
+	if value, ok := rc.mutation.UpdatedDate(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  value,
+			Column: room.FieldUpdatedDate,
+		})
+		_node.UpdatedDate = value
+	}
+	if value, ok := rc.mutation.DeletedDate(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  value,
+			Column: room.FieldDeletedDate,
+		})
+		_node.DeletedDate = &value
+	}
 	if value, ok := rc.mutation.Title(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
@@ -215,6 +312,25 @@ func (rc *RoomCreate) createSpec() (*Room, *sqlgraph.CreateSpec) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := rc.mutation.MessagesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   room.MessagesTable,
+			Columns: []string{room.MessagesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: message.FieldID,
 				},
 			},
 		}

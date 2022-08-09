@@ -4,8 +4,10 @@ package message
 
 import (
 	"moments/ent/predicate"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 // ID filters vertices based on their ID field.
@@ -76,6 +78,499 @@ func IDLT(id int) predicate.Message {
 func IDLTE(id int) predicate.Message {
 	return predicate.Message(func(s *sql.Selector) {
 		s.Where(sql.LTE(s.C(FieldID), id))
+	})
+}
+
+// CreatedDate applies equality check predicate on the "created_date" field. It's identical to CreatedDateEQ.
+func CreatedDate(v time.Time) predicate.Message {
+	return predicate.Message(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldCreatedDate), v))
+	})
+}
+
+// UpdatedDate applies equality check predicate on the "updated_date" field. It's identical to UpdatedDateEQ.
+func UpdatedDate(v time.Time) predicate.Message {
+	return predicate.Message(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldUpdatedDate), v))
+	})
+}
+
+// DeletedDate applies equality check predicate on the "deleted_date" field. It's identical to DeletedDateEQ.
+func DeletedDate(v time.Time) predicate.Message {
+	return predicate.Message(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldDeletedDate), v))
+	})
+}
+
+// Text applies equality check predicate on the "text" field. It's identical to TextEQ.
+func Text(v string) predicate.Message {
+	return predicate.Message(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldText), v))
+	})
+}
+
+// CreatedDateEQ applies the EQ predicate on the "created_date" field.
+func CreatedDateEQ(v time.Time) predicate.Message {
+	return predicate.Message(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldCreatedDate), v))
+	})
+}
+
+// CreatedDateNEQ applies the NEQ predicate on the "created_date" field.
+func CreatedDateNEQ(v time.Time) predicate.Message {
+	return predicate.Message(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldCreatedDate), v))
+	})
+}
+
+// CreatedDateIn applies the In predicate on the "created_date" field.
+func CreatedDateIn(vs ...time.Time) predicate.Message {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Message(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldCreatedDate), v...))
+	})
+}
+
+// CreatedDateNotIn applies the NotIn predicate on the "created_date" field.
+func CreatedDateNotIn(vs ...time.Time) predicate.Message {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Message(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldCreatedDate), v...))
+	})
+}
+
+// CreatedDateGT applies the GT predicate on the "created_date" field.
+func CreatedDateGT(v time.Time) predicate.Message {
+	return predicate.Message(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldCreatedDate), v))
+	})
+}
+
+// CreatedDateGTE applies the GTE predicate on the "created_date" field.
+func CreatedDateGTE(v time.Time) predicate.Message {
+	return predicate.Message(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldCreatedDate), v))
+	})
+}
+
+// CreatedDateLT applies the LT predicate on the "created_date" field.
+func CreatedDateLT(v time.Time) predicate.Message {
+	return predicate.Message(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldCreatedDate), v))
+	})
+}
+
+// CreatedDateLTE applies the LTE predicate on the "created_date" field.
+func CreatedDateLTE(v time.Time) predicate.Message {
+	return predicate.Message(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldCreatedDate), v))
+	})
+}
+
+// UpdatedDateEQ applies the EQ predicate on the "updated_date" field.
+func UpdatedDateEQ(v time.Time) predicate.Message {
+	return predicate.Message(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldUpdatedDate), v))
+	})
+}
+
+// UpdatedDateNEQ applies the NEQ predicate on the "updated_date" field.
+func UpdatedDateNEQ(v time.Time) predicate.Message {
+	return predicate.Message(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldUpdatedDate), v))
+	})
+}
+
+// UpdatedDateIn applies the In predicate on the "updated_date" field.
+func UpdatedDateIn(vs ...time.Time) predicate.Message {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Message(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldUpdatedDate), v...))
+	})
+}
+
+// UpdatedDateNotIn applies the NotIn predicate on the "updated_date" field.
+func UpdatedDateNotIn(vs ...time.Time) predicate.Message {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Message(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldUpdatedDate), v...))
+	})
+}
+
+// UpdatedDateGT applies the GT predicate on the "updated_date" field.
+func UpdatedDateGT(v time.Time) predicate.Message {
+	return predicate.Message(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldUpdatedDate), v))
+	})
+}
+
+// UpdatedDateGTE applies the GTE predicate on the "updated_date" field.
+func UpdatedDateGTE(v time.Time) predicate.Message {
+	return predicate.Message(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldUpdatedDate), v))
+	})
+}
+
+// UpdatedDateLT applies the LT predicate on the "updated_date" field.
+func UpdatedDateLT(v time.Time) predicate.Message {
+	return predicate.Message(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldUpdatedDate), v))
+	})
+}
+
+// UpdatedDateLTE applies the LTE predicate on the "updated_date" field.
+func UpdatedDateLTE(v time.Time) predicate.Message {
+	return predicate.Message(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldUpdatedDate), v))
+	})
+}
+
+// DeletedDateEQ applies the EQ predicate on the "deleted_date" field.
+func DeletedDateEQ(v time.Time) predicate.Message {
+	return predicate.Message(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldDeletedDate), v))
+	})
+}
+
+// DeletedDateNEQ applies the NEQ predicate on the "deleted_date" field.
+func DeletedDateNEQ(v time.Time) predicate.Message {
+	return predicate.Message(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldDeletedDate), v))
+	})
+}
+
+// DeletedDateIn applies the In predicate on the "deleted_date" field.
+func DeletedDateIn(vs ...time.Time) predicate.Message {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Message(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldDeletedDate), v...))
+	})
+}
+
+// DeletedDateNotIn applies the NotIn predicate on the "deleted_date" field.
+func DeletedDateNotIn(vs ...time.Time) predicate.Message {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Message(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldDeletedDate), v...))
+	})
+}
+
+// DeletedDateGT applies the GT predicate on the "deleted_date" field.
+func DeletedDateGT(v time.Time) predicate.Message {
+	return predicate.Message(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldDeletedDate), v))
+	})
+}
+
+// DeletedDateGTE applies the GTE predicate on the "deleted_date" field.
+func DeletedDateGTE(v time.Time) predicate.Message {
+	return predicate.Message(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldDeletedDate), v))
+	})
+}
+
+// DeletedDateLT applies the LT predicate on the "deleted_date" field.
+func DeletedDateLT(v time.Time) predicate.Message {
+	return predicate.Message(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldDeletedDate), v))
+	})
+}
+
+// DeletedDateLTE applies the LTE predicate on the "deleted_date" field.
+func DeletedDateLTE(v time.Time) predicate.Message {
+	return predicate.Message(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldDeletedDate), v))
+	})
+}
+
+// DeletedDateIsNil applies the IsNil predicate on the "deleted_date" field.
+func DeletedDateIsNil() predicate.Message {
+	return predicate.Message(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldDeletedDate)))
+	})
+}
+
+// DeletedDateNotNil applies the NotNil predicate on the "deleted_date" field.
+func DeletedDateNotNil() predicate.Message {
+	return predicate.Message(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldDeletedDate)))
+	})
+}
+
+// TextEQ applies the EQ predicate on the "text" field.
+func TextEQ(v string) predicate.Message {
+	return predicate.Message(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldText), v))
+	})
+}
+
+// TextNEQ applies the NEQ predicate on the "text" field.
+func TextNEQ(v string) predicate.Message {
+	return predicate.Message(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldText), v))
+	})
+}
+
+// TextIn applies the In predicate on the "text" field.
+func TextIn(vs ...string) predicate.Message {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Message(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldText), v...))
+	})
+}
+
+// TextNotIn applies the NotIn predicate on the "text" field.
+func TextNotIn(vs ...string) predicate.Message {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Message(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldText), v...))
+	})
+}
+
+// TextGT applies the GT predicate on the "text" field.
+func TextGT(v string) predicate.Message {
+	return predicate.Message(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldText), v))
+	})
+}
+
+// TextGTE applies the GTE predicate on the "text" field.
+func TextGTE(v string) predicate.Message {
+	return predicate.Message(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldText), v))
+	})
+}
+
+// TextLT applies the LT predicate on the "text" field.
+func TextLT(v string) predicate.Message {
+	return predicate.Message(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldText), v))
+	})
+}
+
+// TextLTE applies the LTE predicate on the "text" field.
+func TextLTE(v string) predicate.Message {
+	return predicate.Message(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldText), v))
+	})
+}
+
+// TextContains applies the Contains predicate on the "text" field.
+func TextContains(v string) predicate.Message {
+	return predicate.Message(func(s *sql.Selector) {
+		s.Where(sql.Contains(s.C(FieldText), v))
+	})
+}
+
+// TextHasPrefix applies the HasPrefix predicate on the "text" field.
+func TextHasPrefix(v string) predicate.Message {
+	return predicate.Message(func(s *sql.Selector) {
+		s.Where(sql.HasPrefix(s.C(FieldText), v))
+	})
+}
+
+// TextHasSuffix applies the HasSuffix predicate on the "text" field.
+func TextHasSuffix(v string) predicate.Message {
+	return predicate.Message(func(s *sql.Selector) {
+		s.Where(sql.HasSuffix(s.C(FieldText), v))
+	})
+}
+
+// TextEqualFold applies the EqualFold predicate on the "text" field.
+func TextEqualFold(v string) predicate.Message {
+	return predicate.Message(func(s *sql.Selector) {
+		s.Where(sql.EqualFold(s.C(FieldText), v))
+	})
+}
+
+// TextContainsFold applies the ContainsFold predicate on the "text" field.
+func TextContainsFold(v string) predicate.Message {
+	return predicate.Message(func(s *sql.Selector) {
+		s.Where(sql.ContainsFold(s.C(FieldText), v))
+	})
+}
+
+// HasOwner applies the HasEdge predicate on the "owner" edge.
+func HasOwner() predicate.Message {
+	return predicate.Message(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(OwnerTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, OwnerTable, OwnerColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasOwnerWith applies the HasEdge predicate on the "owner" edge with a given conditions (other predicates).
+func HasOwnerWith(preds ...predicate.Room) predicate.Message {
+	return predicate.Message(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(OwnerInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, OwnerTable, OwnerColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasSender applies the HasEdge predicate on the "sender" edge.
+func HasSender() predicate.Message {
+	return predicate.Message(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(SenderTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, SenderTable, SenderColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasSenderWith applies the HasEdge predicate on the "sender" edge with a given conditions (other predicates).
+func HasSenderWith(preds ...predicate.User) predicate.Message {
+	return predicate.Message(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(SenderInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, SenderTable, SenderColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasReplied applies the HasEdge predicate on the "replied" edge.
+func HasReplied() predicate.Message {
+	return predicate.Message(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(RepliedTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, RepliedTable, RepliedColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasRepliedWith applies the HasEdge predicate on the "replied" edge with a given conditions (other predicates).
+func HasRepliedWith(preds ...predicate.Message) predicate.Message {
+	return predicate.Message(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, RepliedTable, RepliedColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasRepliedMessages applies the HasEdge predicate on the "replied_messages" edge.
+func HasRepliedMessages() predicate.Message {
+	return predicate.Message(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(RepliedMessagesTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, RepliedMessagesTable, RepliedMessagesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasRepliedMessagesWith applies the HasEdge predicate on the "replied_messages" edge with a given conditions (other predicates).
+func HasRepliedMessagesWith(preds ...predicate.Message) predicate.Message {
+	return predicate.Message(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, RepliedMessagesTable, RepliedMessagesColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
 	})
 }
 

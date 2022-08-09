@@ -11,6 +11,12 @@ type Room struct {
 	ent.Schema
 }
 
+func (Room) Mixin() []ent.Mixin {
+	return []ent.Mixin{
+		BaseModel{},
+	}
+}
+
 // Fields of the Room.
 func (Room) Fields() []ent.Field {
 	return []ent.Field{
@@ -23,5 +29,6 @@ func (Room) Fields() []ent.Field {
 func (Room) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("users", User.Type).Ref("rooms"),
+		edge.To("messages", Message.Type),
 	}
 }

@@ -4,6 +4,7 @@ package room
 
 import (
 	"fmt"
+	"time"
 )
 
 const (
@@ -11,12 +12,20 @@ const (
 	Label = "room"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
+	// FieldCreatedDate holds the string denoting the created_date field in the database.
+	FieldCreatedDate = "created_date"
+	// FieldUpdatedDate holds the string denoting the updated_date field in the database.
+	FieldUpdatedDate = "updated_date"
+	// FieldDeletedDate holds the string denoting the deleted_date field in the database.
+	FieldDeletedDate = "deleted_date"
 	// FieldTitle holds the string denoting the title field in the database.
 	FieldTitle = "title"
 	// FieldType holds the string denoting the type field in the database.
 	FieldType = "type"
 	// EdgeUsers holds the string denoting the users edge name in mutations.
 	EdgeUsers = "users"
+	// EdgeMessages holds the string denoting the messages edge name in mutations.
+	EdgeMessages = "messages"
 	// Table holds the table name of the room in the database.
 	Table = "rooms"
 	// UsersTable is the table that holds the users relation/edge. The primary key declared below.
@@ -24,11 +33,21 @@ const (
 	// UsersInverseTable is the table name for the User entity.
 	// It exists in this package in order to avoid circular dependency with the "user" package.
 	UsersInverseTable = "users"
+	// MessagesTable is the table that holds the messages relation/edge.
+	MessagesTable = "messages"
+	// MessagesInverseTable is the table name for the Message entity.
+	// It exists in this package in order to avoid circular dependency with the "message" package.
+	MessagesInverseTable = "messages"
+	// MessagesColumn is the table column denoting the messages relation/edge.
+	MessagesColumn = "room_messages"
 )
 
 // Columns holds all SQL columns for room fields.
 var Columns = []string{
 	FieldID,
+	FieldCreatedDate,
+	FieldUpdatedDate,
+	FieldDeletedDate,
 	FieldTitle,
 	FieldType,
 }
@@ -50,6 +69,10 @@ func ValidColumn(column string) bool {
 }
 
 var (
+	// DefaultCreatedDate holds the default value on creation for the "created_date" field.
+	DefaultCreatedDate time.Time
+	// DefaultUpdatedDate holds the default value on creation for the "updated_date" field.
+	DefaultUpdatedDate time.Time
 	// TitleValidator is a validator for the "title" field. It is called by the builders before save.
 	TitleValidator func(string) error
 )

@@ -5,16 +5,99 @@ package ent
 import (
 	"fmt"
 	"moments/ent/message"
+	"moments/ent/room"
+	"moments/ent/user"
 	"strings"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 )
 
 // Message is the model entity for the Message schema.
 type Message struct {
-	config
+	config `json:"-"`
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
+	// CreatedDate holds the value of the "created_date" field.
+	CreatedDate time.Time `json:"created_date,omitempty"`
+	// UpdatedDate holds the value of the "updated_date" field.
+	UpdatedDate time.Time `json:"updated_date,omitempty"`
+	// DeletedDate holds the value of the "deleted_date" field.
+	DeletedDate *time.Time `json:"deleted_date,omitempty"`
+	// Text holds the value of the "text" field.
+	Text string `json:"text,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the MessageQuery when eager-loading is set.
+	Edges                    MessageEdges `json:"edges"`
+	message_replied_messages *int
+	room_messages            *int
+	user_messages            *int
+}
+
+// MessageEdges holds the relations/edges for other nodes in the graph.
+type MessageEdges struct {
+	// Owner holds the value of the owner edge.
+	Owner *Room `json:"owner,omitempty"`
+	// Sender holds the value of the sender edge.
+	Sender *User `json:"sender,omitempty"`
+	// Replied holds the value of the replied edge.
+	Replied *Message `json:"replied,omitempty"`
+	// RepliedMessages holds the value of the replied_messages edge.
+	RepliedMessages []*Message `json:"replied_messages,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [4]bool
+}
+
+// OwnerOrErr returns the Owner value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e MessageEdges) OwnerOrErr() (*Room, error) {
+	if e.loadedTypes[0] {
+		if e.Owner == nil {
+			// The edge owner was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: room.Label}
+		}
+		return e.Owner, nil
+	}
+	return nil, &NotLoadedError{edge: "owner"}
+}
+
+// SenderOrErr returns the Sender value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e MessageEdges) SenderOrErr() (*User, error) {
+	if e.loadedTypes[1] {
+		if e.Sender == nil {
+			// The edge sender was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: user.Label}
+		}
+		return e.Sender, nil
+	}
+	return nil, &NotLoadedError{edge: "sender"}
+}
+
+// RepliedOrErr returns the Replied value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e MessageEdges) RepliedOrErr() (*Message, error) {
+	if e.loadedTypes[2] {
+		if e.Replied == nil {
+			// The edge replied was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: message.Label}
+		}
+		return e.Replied, nil
+	}
+	return nil, &NotLoadedError{edge: "replied"}
+}
+
+// RepliedMessagesOrErr returns the RepliedMessages value or an error if the edge
+// was not loaded in eager-loading.
+func (e MessageEdges) RepliedMessagesOrErr() ([]*Message, error) {
+	if e.loadedTypes[3] {
+		return e.RepliedMessages, nil
+	}
+	return nil, &NotLoadedError{edge: "replied_messages"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -23,6 +106,16 @@ func (*Message) scanValues(columns []string) ([]interface{}, error) {
 	for i := range columns {
 		switch columns[i] {
 		case message.FieldID:
+			values[i] = new(sql.NullInt64)
+		case message.FieldText:
+			values[i] = new(sql.NullString)
+		case message.FieldCreatedDate, message.FieldUpdatedDate, message.FieldDeletedDate:
+			values[i] = new(sql.NullTime)
+		case message.ForeignKeys[0]: // message_replied_messages
+			values[i] = new(sql.NullInt64)
+		case message.ForeignKeys[1]: // room_messages
+			values[i] = new(sql.NullInt64)
+		case message.ForeignKeys[2]: // user_messages
 			values[i] = new(sql.NullInt64)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Message", columns[i])
@@ -45,9 +138,75 @@ func (m *Message) assignValues(columns []string, values []interface{}) error {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
 			m.ID = int(value.Int64)
+		case message.FieldCreatedDate:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field created_date", values[i])
+			} else if value.Valid {
+				m.CreatedDate = value.Time
+			}
+		case message.FieldUpdatedDate:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field updated_date", values[i])
+			} else if value.Valid {
+				m.UpdatedDate = value.Time
+			}
+		case message.FieldDeletedDate:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field deleted_date", values[i])
+			} else if value.Valid {
+				m.DeletedDate = new(time.Time)
+				*m.DeletedDate = value.Time
+			}
+		case message.FieldText:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field text", values[i])
+			} else if value.Valid {
+				m.Text = value.String
+			}
+		case message.ForeignKeys[0]:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for edge-field message_replied_messages", value)
+			} else if value.Valid {
+				m.message_replied_messages = new(int)
+				*m.message_replied_messages = int(value.Int64)
+			}
+		case message.ForeignKeys[1]:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for edge-field room_messages", value)
+			} else if value.Valid {
+				m.room_messages = new(int)
+				*m.room_messages = int(value.Int64)
+			}
+		case message.ForeignKeys[2]:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for edge-field user_messages", value)
+			} else if value.Valid {
+				m.user_messages = new(int)
+				*m.user_messages = int(value.Int64)
+			}
 		}
 	}
 	return nil
+}
+
+// QueryOwner queries the "owner" edge of the Message entity.
+func (m *Message) QueryOwner() *RoomQuery {
+	return (&MessageClient{config: m.config}).QueryOwner(m)
+}
+
+// QuerySender queries the "sender" edge of the Message entity.
+func (m *Message) QuerySender() *UserQuery {
+	return (&MessageClient{config: m.config}).QuerySender(m)
+}
+
+// QueryReplied queries the "replied" edge of the Message entity.
+func (m *Message) QueryReplied() *MessageQuery {
+	return (&MessageClient{config: m.config}).QueryReplied(m)
+}
+
+// QueryRepliedMessages queries the "replied_messages" edge of the Message entity.
+func (m *Message) QueryRepliedMessages() *MessageQuery {
+	return (&MessageClient{config: m.config}).QueryRepliedMessages(m)
 }
 
 // Update returns a builder for updating this Message.
@@ -72,7 +231,20 @@ func (m *Message) Unwrap() *Message {
 func (m *Message) String() string {
 	var builder strings.Builder
 	builder.WriteString("Message(")
-	builder.WriteString(fmt.Sprintf("id=%v", m.ID))
+	builder.WriteString(fmt.Sprintf("id=%v, ", m.ID))
+	builder.WriteString("created_date=")
+	builder.WriteString(m.CreatedDate.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("updated_date=")
+	builder.WriteString(m.UpdatedDate.Format(time.ANSIC))
+	builder.WriteString(", ")
+	if v := m.DeletedDate; v != nil {
+		builder.WriteString("deleted_date=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
+	builder.WriteString(", ")
+	builder.WriteString("text=")
+	builder.WriteString(m.Text)
 	builder.WriteByte(')')
 	return builder.String()
 }

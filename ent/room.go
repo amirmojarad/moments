@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"moments/ent/room"
 	"strings"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 )
@@ -15,6 +16,12 @@ type Room struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
+	// CreatedDate holds the value of the "created_date" field.
+	CreatedDate time.Time `json:"created_date,omitempty"`
+	// UpdatedDate holds the value of the "updated_date" field.
+	UpdatedDate time.Time `json:"updated_date,omitempty"`
+	// DeletedDate holds the value of the "deleted_date" field.
+	DeletedDate *time.Time `json:"deleted_date,omitempty"`
 	// Title holds the value of the "title" field.
 	Title string `json:"title,omitempty"`
 	// Type holds the value of the "type" field.
@@ -28,9 +35,11 @@ type Room struct {
 type RoomEdges struct {
 	// Users holds the value of the users edge.
 	Users []*User `json:"users,omitempty"`
+	// Messages holds the value of the messages edge.
+	Messages []*Message `json:"messages,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // UsersOrErr returns the Users value or an error if the edge
@@ -42,6 +51,15 @@ func (e RoomEdges) UsersOrErr() ([]*User, error) {
 	return nil, &NotLoadedError{edge: "users"}
 }
 
+// MessagesOrErr returns the Messages value or an error if the edge
+// was not loaded in eager-loading.
+func (e RoomEdges) MessagesOrErr() ([]*Message, error) {
+	if e.loadedTypes[1] {
+		return e.Messages, nil
+	}
+	return nil, &NotLoadedError{edge: "messages"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Room) scanValues(columns []string) ([]interface{}, error) {
 	values := make([]interface{}, len(columns))
@@ -51,6 +69,8 @@ func (*Room) scanValues(columns []string) ([]interface{}, error) {
 			values[i] = new(sql.NullInt64)
 		case room.FieldTitle, room.FieldType:
 			values[i] = new(sql.NullString)
+		case room.FieldCreatedDate, room.FieldUpdatedDate, room.FieldDeletedDate:
+			values[i] = new(sql.NullTime)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Room", columns[i])
 		}
@@ -72,6 +92,25 @@ func (r *Room) assignValues(columns []string, values []interface{}) error {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
 			r.ID = int(value.Int64)
+		case room.FieldCreatedDate:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field created_date", values[i])
+			} else if value.Valid {
+				r.CreatedDate = value.Time
+			}
+		case room.FieldUpdatedDate:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field updated_date", values[i])
+			} else if value.Valid {
+				r.UpdatedDate = value.Time
+			}
+		case room.FieldDeletedDate:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field deleted_date", values[i])
+			} else if value.Valid {
+				r.DeletedDate = new(time.Time)
+				*r.DeletedDate = value.Time
+			}
 		case room.FieldTitle:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field title", values[i])
@@ -92,6 +131,11 @@ func (r *Room) assignValues(columns []string, values []interface{}) error {
 // QueryUsers queries the "users" edge of the Room entity.
 func (r *Room) QueryUsers() *UserQuery {
 	return (&RoomClient{config: r.config}).QueryUsers(r)
+}
+
+// QueryMessages queries the "messages" edge of the Room entity.
+func (r *Room) QueryMessages() *MessageQuery {
+	return (&RoomClient{config: r.config}).QueryMessages(r)
 }
 
 // Update returns a builder for updating this Room.
@@ -117,6 +161,17 @@ func (r *Room) String() string {
 	var builder strings.Builder
 	builder.WriteString("Room(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", r.ID))
+	builder.WriteString("created_date=")
+	builder.WriteString(r.CreatedDate.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("updated_date=")
+	builder.WriteString(r.UpdatedDate.Format(time.ANSIC))
+	builder.WriteString(", ")
+	if v := r.DeletedDate; v != nil {
+		builder.WriteString("deleted_date=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
+	builder.WriteString(", ")
 	builder.WriteString("title=")
 	builder.WriteString(r.Title)
 	builder.WriteString(", ")

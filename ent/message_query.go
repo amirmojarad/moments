@@ -4,10 +4,13 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"math"
 	"moments/ent/message"
 	"moments/ent/predicate"
+	"moments/ent/room"
+	"moments/ent/user"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -23,6 +26,12 @@ type MessageQuery struct {
 	order      []OrderFunc
 	fields     []string
 	predicates []predicate.Message
+	// eager-loading edges.
+	withOwner           *RoomQuery
+	withSender          *UserQuery
+	withReplied         *MessageQuery
+	withRepliedMessages *MessageQuery
+	withFKs             bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -57,6 +66,94 @@ func (mq *MessageQuery) Unique(unique bool) *MessageQuery {
 func (mq *MessageQuery) Order(o ...OrderFunc) *MessageQuery {
 	mq.order = append(mq.order, o...)
 	return mq
+}
+
+// QueryOwner chains the current query on the "owner" edge.
+func (mq *MessageQuery) QueryOwner() *RoomQuery {
+	query := &RoomQuery{config: mq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := mq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := mq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(message.Table, message.FieldID, selector),
+			sqlgraph.To(room.Table, room.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, message.OwnerTable, message.OwnerColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(mq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QuerySender chains the current query on the "sender" edge.
+func (mq *MessageQuery) QuerySender() *UserQuery {
+	query := &UserQuery{config: mq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := mq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := mq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(message.Table, message.FieldID, selector),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, message.SenderTable, message.SenderColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(mq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryReplied chains the current query on the "replied" edge.
+func (mq *MessageQuery) QueryReplied() *MessageQuery {
+	query := &MessageQuery{config: mq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := mq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := mq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(message.Table, message.FieldID, selector),
+			sqlgraph.To(message.Table, message.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, message.RepliedTable, message.RepliedColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(mq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryRepliedMessages chains the current query on the "replied_messages" edge.
+func (mq *MessageQuery) QueryRepliedMessages() *MessageQuery {
+	query := &MessageQuery{config: mq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := mq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := mq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(message.Table, message.FieldID, selector),
+			sqlgraph.To(message.Table, message.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, message.RepliedMessagesTable, message.RepliedMessagesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(mq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // First returns the first Message entity from the query.
@@ -235,11 +332,15 @@ func (mq *MessageQuery) Clone() *MessageQuery {
 		return nil
 	}
 	return &MessageQuery{
-		config:     mq.config,
-		limit:      mq.limit,
-		offset:     mq.offset,
-		order:      append([]OrderFunc{}, mq.order...),
-		predicates: append([]predicate.Message{}, mq.predicates...),
+		config:              mq.config,
+		limit:               mq.limit,
+		offset:              mq.offset,
+		order:               append([]OrderFunc{}, mq.order...),
+		predicates:          append([]predicate.Message{}, mq.predicates...),
+		withOwner:           mq.withOwner.Clone(),
+		withSender:          mq.withSender.Clone(),
+		withReplied:         mq.withReplied.Clone(),
+		withRepliedMessages: mq.withRepliedMessages.Clone(),
 		// clone intermediate query.
 		sql:    mq.sql.Clone(),
 		path:   mq.path,
@@ -247,8 +348,65 @@ func (mq *MessageQuery) Clone() *MessageQuery {
 	}
 }
 
+// WithOwner tells the query-builder to eager-load the nodes that are connected to
+// the "owner" edge. The optional arguments are used to configure the query builder of the edge.
+func (mq *MessageQuery) WithOwner(opts ...func(*RoomQuery)) *MessageQuery {
+	query := &RoomQuery{config: mq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	mq.withOwner = query
+	return mq
+}
+
+// WithSender tells the query-builder to eager-load the nodes that are connected to
+// the "sender" edge. The optional arguments are used to configure the query builder of the edge.
+func (mq *MessageQuery) WithSender(opts ...func(*UserQuery)) *MessageQuery {
+	query := &UserQuery{config: mq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	mq.withSender = query
+	return mq
+}
+
+// WithReplied tells the query-builder to eager-load the nodes that are connected to
+// the "replied" edge. The optional arguments are used to configure the query builder of the edge.
+func (mq *MessageQuery) WithReplied(opts ...func(*MessageQuery)) *MessageQuery {
+	query := &MessageQuery{config: mq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	mq.withReplied = query
+	return mq
+}
+
+// WithRepliedMessages tells the query-builder to eager-load the nodes that are connected to
+// the "replied_messages" edge. The optional arguments are used to configure the query builder of the edge.
+func (mq *MessageQuery) WithRepliedMessages(opts ...func(*MessageQuery)) *MessageQuery {
+	query := &MessageQuery{config: mq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	mq.withRepliedMessages = query
+	return mq
+}
+
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
+//
+// Example:
+//
+//	var v []struct {
+//		CreatedDate time.Time `json:"created_date,omitempty"`
+//		Count int `json:"count,omitempty"`
+//	}
+//
+//	client.Message.Query().
+//		GroupBy(message.FieldCreatedDate).
+//		Aggregate(ent.Count()).
+//		Scan(ctx, &v)
+//
 func (mq *MessageQuery) GroupBy(field string, fields ...string) *MessageGroupBy {
 	grbuild := &MessageGroupBy{config: mq.config}
 	grbuild.fields = append([]string{field}, fields...)
@@ -265,6 +423,17 @@ func (mq *MessageQuery) GroupBy(field string, fields ...string) *MessageGroupBy 
 
 // Select allows the selection one or more fields/columns for the given query,
 // instead of selecting all fields in the entity.
+//
+// Example:
+//
+//	var v []struct {
+//		CreatedDate time.Time `json:"created_date,omitempty"`
+//	}
+//
+//	client.Message.Query().
+//		Select(message.FieldCreatedDate).
+//		Scan(ctx, &v)
+//
 func (mq *MessageQuery) Select(fields ...string) *MessageSelect {
 	mq.fields = append(mq.fields, fields...)
 	selbuild := &MessageSelect{MessageQuery: mq}
@@ -291,15 +460,29 @@ func (mq *MessageQuery) prepareQuery(ctx context.Context) error {
 
 func (mq *MessageQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Message, error) {
 	var (
-		nodes = []*Message{}
-		_spec = mq.querySpec()
+		nodes       = []*Message{}
+		withFKs     = mq.withFKs
+		_spec       = mq.querySpec()
+		loadedTypes = [4]bool{
+			mq.withOwner != nil,
+			mq.withSender != nil,
+			mq.withReplied != nil,
+			mq.withRepliedMessages != nil,
+		}
 	)
+	if mq.withOwner != nil || mq.withSender != nil || mq.withReplied != nil {
+		withFKs = true
+	}
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, message.ForeignKeys...)
+	}
 	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
 		return (*Message).scanValues(nil, columns)
 	}
 	_spec.Assign = func(columns []string, values []interface{}) error {
 		node := &Message{config: mq.config}
 		nodes = append(nodes, node)
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	for i := range hooks {
@@ -311,6 +494,123 @@ func (mq *MessageQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Mess
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+
+	if query := mq.withOwner; query != nil {
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*Message)
+		for i := range nodes {
+			if nodes[i].room_messages == nil {
+				continue
+			}
+			fk := *nodes[i].room_messages
+			if _, ok := nodeids[fk]; !ok {
+				ids = append(ids, fk)
+			}
+			nodeids[fk] = append(nodeids[fk], nodes[i])
+		}
+		query.Where(room.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "room_messages" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.Owner = n
+			}
+		}
+	}
+
+	if query := mq.withSender; query != nil {
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*Message)
+		for i := range nodes {
+			if nodes[i].user_messages == nil {
+				continue
+			}
+			fk := *nodes[i].user_messages
+			if _, ok := nodeids[fk]; !ok {
+				ids = append(ids, fk)
+			}
+			nodeids[fk] = append(nodeids[fk], nodes[i])
+		}
+		query.Where(user.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "user_messages" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.Sender = n
+			}
+		}
+	}
+
+	if query := mq.withReplied; query != nil {
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*Message)
+		for i := range nodes {
+			if nodes[i].message_replied_messages == nil {
+				continue
+			}
+			fk := *nodes[i].message_replied_messages
+			if _, ok := nodeids[fk]; !ok {
+				ids = append(ids, fk)
+			}
+			nodeids[fk] = append(nodeids[fk], nodes[i])
+		}
+		query.Where(message.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "message_replied_messages" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.Replied = n
+			}
+		}
+	}
+
+	if query := mq.withRepliedMessages; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[int]*Message)
+		for i := range nodes {
+			fks = append(fks, nodes[i].ID)
+			nodeids[nodes[i].ID] = nodes[i]
+			nodes[i].Edges.RepliedMessages = []*Message{}
+		}
+		query.withFKs = true
+		query.Where(predicate.Message(func(s *sql.Selector) {
+			s.Where(sql.InValues(message.RepliedMessagesColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.message_replied_messages
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "message_replied_messages" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "message_replied_messages" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.RepliedMessages = append(node.Edges.RepliedMessages, n)
+		}
+	}
+
 	return nodes, nil
 }
 

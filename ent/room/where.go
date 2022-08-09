@@ -4,6 +4,7 @@ package room
 
 import (
 	"moments/ent/predicate"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -80,10 +81,273 @@ func IDLTE(id int) predicate.Room {
 	})
 }
 
+// CreatedDate applies equality check predicate on the "created_date" field. It's identical to CreatedDateEQ.
+func CreatedDate(v time.Time) predicate.Room {
+	return predicate.Room(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldCreatedDate), v))
+	})
+}
+
+// UpdatedDate applies equality check predicate on the "updated_date" field. It's identical to UpdatedDateEQ.
+func UpdatedDate(v time.Time) predicate.Room {
+	return predicate.Room(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldUpdatedDate), v))
+	})
+}
+
+// DeletedDate applies equality check predicate on the "deleted_date" field. It's identical to DeletedDateEQ.
+func DeletedDate(v time.Time) predicate.Room {
+	return predicate.Room(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldDeletedDate), v))
+	})
+}
+
 // Title applies equality check predicate on the "title" field. It's identical to TitleEQ.
 func Title(v string) predicate.Room {
 	return predicate.Room(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldTitle), v))
+	})
+}
+
+// CreatedDateEQ applies the EQ predicate on the "created_date" field.
+func CreatedDateEQ(v time.Time) predicate.Room {
+	return predicate.Room(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldCreatedDate), v))
+	})
+}
+
+// CreatedDateNEQ applies the NEQ predicate on the "created_date" field.
+func CreatedDateNEQ(v time.Time) predicate.Room {
+	return predicate.Room(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldCreatedDate), v))
+	})
+}
+
+// CreatedDateIn applies the In predicate on the "created_date" field.
+func CreatedDateIn(vs ...time.Time) predicate.Room {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Room(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldCreatedDate), v...))
+	})
+}
+
+// CreatedDateNotIn applies the NotIn predicate on the "created_date" field.
+func CreatedDateNotIn(vs ...time.Time) predicate.Room {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Room(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldCreatedDate), v...))
+	})
+}
+
+// CreatedDateGT applies the GT predicate on the "created_date" field.
+func CreatedDateGT(v time.Time) predicate.Room {
+	return predicate.Room(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldCreatedDate), v))
+	})
+}
+
+// CreatedDateGTE applies the GTE predicate on the "created_date" field.
+func CreatedDateGTE(v time.Time) predicate.Room {
+	return predicate.Room(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldCreatedDate), v))
+	})
+}
+
+// CreatedDateLT applies the LT predicate on the "created_date" field.
+func CreatedDateLT(v time.Time) predicate.Room {
+	return predicate.Room(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldCreatedDate), v))
+	})
+}
+
+// CreatedDateLTE applies the LTE predicate on the "created_date" field.
+func CreatedDateLTE(v time.Time) predicate.Room {
+	return predicate.Room(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldCreatedDate), v))
+	})
+}
+
+// UpdatedDateEQ applies the EQ predicate on the "updated_date" field.
+func UpdatedDateEQ(v time.Time) predicate.Room {
+	return predicate.Room(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldUpdatedDate), v))
+	})
+}
+
+// UpdatedDateNEQ applies the NEQ predicate on the "updated_date" field.
+func UpdatedDateNEQ(v time.Time) predicate.Room {
+	return predicate.Room(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldUpdatedDate), v))
+	})
+}
+
+// UpdatedDateIn applies the In predicate on the "updated_date" field.
+func UpdatedDateIn(vs ...time.Time) predicate.Room {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Room(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldUpdatedDate), v...))
+	})
+}
+
+// UpdatedDateNotIn applies the NotIn predicate on the "updated_date" field.
+func UpdatedDateNotIn(vs ...time.Time) predicate.Room {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Room(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldUpdatedDate), v...))
+	})
+}
+
+// UpdatedDateGT applies the GT predicate on the "updated_date" field.
+func UpdatedDateGT(v time.Time) predicate.Room {
+	return predicate.Room(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldUpdatedDate), v))
+	})
+}
+
+// UpdatedDateGTE applies the GTE predicate on the "updated_date" field.
+func UpdatedDateGTE(v time.Time) predicate.Room {
+	return predicate.Room(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldUpdatedDate), v))
+	})
+}
+
+// UpdatedDateLT applies the LT predicate on the "updated_date" field.
+func UpdatedDateLT(v time.Time) predicate.Room {
+	return predicate.Room(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldUpdatedDate), v))
+	})
+}
+
+// UpdatedDateLTE applies the LTE predicate on the "updated_date" field.
+func UpdatedDateLTE(v time.Time) predicate.Room {
+	return predicate.Room(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldUpdatedDate), v))
+	})
+}
+
+// DeletedDateEQ applies the EQ predicate on the "deleted_date" field.
+func DeletedDateEQ(v time.Time) predicate.Room {
+	return predicate.Room(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldDeletedDate), v))
+	})
+}
+
+// DeletedDateNEQ applies the NEQ predicate on the "deleted_date" field.
+func DeletedDateNEQ(v time.Time) predicate.Room {
+	return predicate.Room(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldDeletedDate), v))
+	})
+}
+
+// DeletedDateIn applies the In predicate on the "deleted_date" field.
+func DeletedDateIn(vs ...time.Time) predicate.Room {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Room(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldDeletedDate), v...))
+	})
+}
+
+// DeletedDateNotIn applies the NotIn predicate on the "deleted_date" field.
+func DeletedDateNotIn(vs ...time.Time) predicate.Room {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Room(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldDeletedDate), v...))
+	})
+}
+
+// DeletedDateGT applies the GT predicate on the "deleted_date" field.
+func DeletedDateGT(v time.Time) predicate.Room {
+	return predicate.Room(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldDeletedDate), v))
+	})
+}
+
+// DeletedDateGTE applies the GTE predicate on the "deleted_date" field.
+func DeletedDateGTE(v time.Time) predicate.Room {
+	return predicate.Room(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldDeletedDate), v))
+	})
+}
+
+// DeletedDateLT applies the LT predicate on the "deleted_date" field.
+func DeletedDateLT(v time.Time) predicate.Room {
+	return predicate.Room(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldDeletedDate), v))
+	})
+}
+
+// DeletedDateLTE applies the LTE predicate on the "deleted_date" field.
+func DeletedDateLTE(v time.Time) predicate.Room {
+	return predicate.Room(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldDeletedDate), v))
+	})
+}
+
+// DeletedDateIsNil applies the IsNil predicate on the "deleted_date" field.
+func DeletedDateIsNil() predicate.Room {
+	return predicate.Room(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldDeletedDate)))
+	})
+}
+
+// DeletedDateNotNil applies the NotNil predicate on the "deleted_date" field.
+func DeletedDateNotNil() predicate.Room {
+	return predicate.Room(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldDeletedDate)))
 	})
 }
 
@@ -279,6 +543,34 @@ func HasUsersWith(preds ...predicate.User) predicate.Room {
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(UsersInverseTable, FieldID),
 			sqlgraph.Edge(sqlgraph.M2M, true, UsersTable, UsersPrimaryKey...),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasMessages applies the HasEdge predicate on the "messages" edge.
+func HasMessages() predicate.Room {
+	return predicate.Room(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(MessagesTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, MessagesTable, MessagesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasMessagesWith applies the HasEdge predicate on the "messages" edge with a given conditions (other predicates).
+func HasMessagesWith(preds ...predicate.Message) predicate.Room {
+	return predicate.Room(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(MessagesInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, MessagesTable, MessagesColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

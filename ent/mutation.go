@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"moments/ent/message"
 	"moments/ent/post"
 	"moments/ent/predicate"
 	"moments/ent/room"
@@ -784,13 +785,26 @@ func (m *FileMutation) ResetEdge(name string) error {
 // MessageMutation represents an operation that mutates the Message nodes in the graph.
 type MessageMutation struct {
 	config
-	op            Op
-	typ           string
-	id            *int
-	clearedFields map[string]struct{}
-	done          bool
-	oldValue      func(context.Context) (*Message, error)
-	predicates    []predicate.Message
+	op                      Op
+	typ                     string
+	id                      *int
+	created_date            *time.Time
+	updated_date            *time.Time
+	deleted_date            *time.Time
+	text                    *string
+	clearedFields           map[string]struct{}
+	owner                   *int
+	clearedowner            bool
+	sender                  *int
+	clearedsender           bool
+	replied                 *int
+	clearedreplied          bool
+	replied_messages        map[int]struct{}
+	removedreplied_messages map[int]struct{}
+	clearedreplied_messages bool
+	done                    bool
+	oldValue                func(context.Context) (*Message, error)
+	predicates              []predicate.Message
 }
 
 var _ ent.Mutation = (*MessageMutation)(nil)
@@ -891,6 +905,334 @@ func (m *MessageMutation) IDs(ctx context.Context) ([]int, error) {
 	}
 }
 
+// SetCreatedDate sets the "created_date" field.
+func (m *MessageMutation) SetCreatedDate(t time.Time) {
+	m.created_date = &t
+}
+
+// CreatedDate returns the value of the "created_date" field in the mutation.
+func (m *MessageMutation) CreatedDate() (r time.Time, exists bool) {
+	v := m.created_date
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedDate returns the old "created_date" field's value of the Message entity.
+// If the Message object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MessageMutation) OldCreatedDate(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedDate is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedDate requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedDate: %w", err)
+	}
+	return oldValue.CreatedDate, nil
+}
+
+// ResetCreatedDate resets all changes to the "created_date" field.
+func (m *MessageMutation) ResetCreatedDate() {
+	m.created_date = nil
+}
+
+// SetUpdatedDate sets the "updated_date" field.
+func (m *MessageMutation) SetUpdatedDate(t time.Time) {
+	m.updated_date = &t
+}
+
+// UpdatedDate returns the value of the "updated_date" field in the mutation.
+func (m *MessageMutation) UpdatedDate() (r time.Time, exists bool) {
+	v := m.updated_date
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedDate returns the old "updated_date" field's value of the Message entity.
+// If the Message object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MessageMutation) OldUpdatedDate(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedDate is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedDate requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedDate: %w", err)
+	}
+	return oldValue.UpdatedDate, nil
+}
+
+// ResetUpdatedDate resets all changes to the "updated_date" field.
+func (m *MessageMutation) ResetUpdatedDate() {
+	m.updated_date = nil
+}
+
+// SetDeletedDate sets the "deleted_date" field.
+func (m *MessageMutation) SetDeletedDate(t time.Time) {
+	m.deleted_date = &t
+}
+
+// DeletedDate returns the value of the "deleted_date" field in the mutation.
+func (m *MessageMutation) DeletedDate() (r time.Time, exists bool) {
+	v := m.deleted_date
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDeletedDate returns the old "deleted_date" field's value of the Message entity.
+// If the Message object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MessageMutation) OldDeletedDate(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDeletedDate is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDeletedDate requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDeletedDate: %w", err)
+	}
+	return oldValue.DeletedDate, nil
+}
+
+// ClearDeletedDate clears the value of the "deleted_date" field.
+func (m *MessageMutation) ClearDeletedDate() {
+	m.deleted_date = nil
+	m.clearedFields[message.FieldDeletedDate] = struct{}{}
+}
+
+// DeletedDateCleared returns if the "deleted_date" field was cleared in this mutation.
+func (m *MessageMutation) DeletedDateCleared() bool {
+	_, ok := m.clearedFields[message.FieldDeletedDate]
+	return ok
+}
+
+// ResetDeletedDate resets all changes to the "deleted_date" field.
+func (m *MessageMutation) ResetDeletedDate() {
+	m.deleted_date = nil
+	delete(m.clearedFields, message.FieldDeletedDate)
+}
+
+// SetText sets the "text" field.
+func (m *MessageMutation) SetText(s string) {
+	m.text = &s
+}
+
+// Text returns the value of the "text" field in the mutation.
+func (m *MessageMutation) Text() (r string, exists bool) {
+	v := m.text
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldText returns the old "text" field's value of the Message entity.
+// If the Message object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MessageMutation) OldText(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldText is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldText requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldText: %w", err)
+	}
+	return oldValue.Text, nil
+}
+
+// ResetText resets all changes to the "text" field.
+func (m *MessageMutation) ResetText() {
+	m.text = nil
+}
+
+// SetOwnerID sets the "owner" edge to the Room entity by id.
+func (m *MessageMutation) SetOwnerID(id int) {
+	m.owner = &id
+}
+
+// ClearOwner clears the "owner" edge to the Room entity.
+func (m *MessageMutation) ClearOwner() {
+	m.clearedowner = true
+}
+
+// OwnerCleared reports if the "owner" edge to the Room entity was cleared.
+func (m *MessageMutation) OwnerCleared() bool {
+	return m.clearedowner
+}
+
+// OwnerID returns the "owner" edge ID in the mutation.
+func (m *MessageMutation) OwnerID() (id int, exists bool) {
+	if m.owner != nil {
+		return *m.owner, true
+	}
+	return
+}
+
+// OwnerIDs returns the "owner" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// OwnerID instead. It exists only for internal usage by the builders.
+func (m *MessageMutation) OwnerIDs() (ids []int) {
+	if id := m.owner; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetOwner resets all changes to the "owner" edge.
+func (m *MessageMutation) ResetOwner() {
+	m.owner = nil
+	m.clearedowner = false
+}
+
+// SetSenderID sets the "sender" edge to the User entity by id.
+func (m *MessageMutation) SetSenderID(id int) {
+	m.sender = &id
+}
+
+// ClearSender clears the "sender" edge to the User entity.
+func (m *MessageMutation) ClearSender() {
+	m.clearedsender = true
+}
+
+// SenderCleared reports if the "sender" edge to the User entity was cleared.
+func (m *MessageMutation) SenderCleared() bool {
+	return m.clearedsender
+}
+
+// SenderID returns the "sender" edge ID in the mutation.
+func (m *MessageMutation) SenderID() (id int, exists bool) {
+	if m.sender != nil {
+		return *m.sender, true
+	}
+	return
+}
+
+// SenderIDs returns the "sender" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// SenderID instead. It exists only for internal usage by the builders.
+func (m *MessageMutation) SenderIDs() (ids []int) {
+	if id := m.sender; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetSender resets all changes to the "sender" edge.
+func (m *MessageMutation) ResetSender() {
+	m.sender = nil
+	m.clearedsender = false
+}
+
+// SetRepliedID sets the "replied" edge to the Message entity by id.
+func (m *MessageMutation) SetRepliedID(id int) {
+	m.replied = &id
+}
+
+// ClearReplied clears the "replied" edge to the Message entity.
+func (m *MessageMutation) ClearReplied() {
+	m.clearedreplied = true
+}
+
+// RepliedCleared reports if the "replied" edge to the Message entity was cleared.
+func (m *MessageMutation) RepliedCleared() bool {
+	return m.clearedreplied
+}
+
+// RepliedID returns the "replied" edge ID in the mutation.
+func (m *MessageMutation) RepliedID() (id int, exists bool) {
+	if m.replied != nil {
+		return *m.replied, true
+	}
+	return
+}
+
+// RepliedIDs returns the "replied" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// RepliedID instead. It exists only for internal usage by the builders.
+func (m *MessageMutation) RepliedIDs() (ids []int) {
+	if id := m.replied; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetReplied resets all changes to the "replied" edge.
+func (m *MessageMutation) ResetReplied() {
+	m.replied = nil
+	m.clearedreplied = false
+}
+
+// AddRepliedMessageIDs adds the "replied_messages" edge to the Message entity by ids.
+func (m *MessageMutation) AddRepliedMessageIDs(ids ...int) {
+	if m.replied_messages == nil {
+		m.replied_messages = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.replied_messages[ids[i]] = struct{}{}
+	}
+}
+
+// ClearRepliedMessages clears the "replied_messages" edge to the Message entity.
+func (m *MessageMutation) ClearRepliedMessages() {
+	m.clearedreplied_messages = true
+}
+
+// RepliedMessagesCleared reports if the "replied_messages" edge to the Message entity was cleared.
+func (m *MessageMutation) RepliedMessagesCleared() bool {
+	return m.clearedreplied_messages
+}
+
+// RemoveRepliedMessageIDs removes the "replied_messages" edge to the Message entity by IDs.
+func (m *MessageMutation) RemoveRepliedMessageIDs(ids ...int) {
+	if m.removedreplied_messages == nil {
+		m.removedreplied_messages = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.replied_messages, ids[i])
+		m.removedreplied_messages[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedRepliedMessages returns the removed IDs of the "replied_messages" edge to the Message entity.
+func (m *MessageMutation) RemovedRepliedMessagesIDs() (ids []int) {
+	for id := range m.removedreplied_messages {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// RepliedMessagesIDs returns the "replied_messages" edge IDs in the mutation.
+func (m *MessageMutation) RepliedMessagesIDs() (ids []int) {
+	for id := range m.replied_messages {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetRepliedMessages resets all changes to the "replied_messages" edge.
+func (m *MessageMutation) ResetRepliedMessages() {
+	m.replied_messages = nil
+	m.clearedreplied_messages = false
+	m.removedreplied_messages = nil
+}
+
 // Where appends a list predicates to the MessageMutation builder.
 func (m *MessageMutation) Where(ps ...predicate.Message) {
 	m.predicates = append(m.predicates, ps...)
@@ -910,7 +1252,19 @@ func (m *MessageMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *MessageMutation) Fields() []string {
-	fields := make([]string, 0, 0)
+	fields := make([]string, 0, 4)
+	if m.created_date != nil {
+		fields = append(fields, message.FieldCreatedDate)
+	}
+	if m.updated_date != nil {
+		fields = append(fields, message.FieldUpdatedDate)
+	}
+	if m.deleted_date != nil {
+		fields = append(fields, message.FieldDeletedDate)
+	}
+	if m.text != nil {
+		fields = append(fields, message.FieldText)
+	}
 	return fields
 }
 
@@ -918,6 +1272,16 @@ func (m *MessageMutation) Fields() []string {
 // return value indicates that this field was not set, or was not defined in the
 // schema.
 func (m *MessageMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case message.FieldCreatedDate:
+		return m.CreatedDate()
+	case message.FieldUpdatedDate:
+		return m.UpdatedDate()
+	case message.FieldDeletedDate:
+		return m.DeletedDate()
+	case message.FieldText:
+		return m.Text()
+	}
 	return nil, false
 }
 
@@ -925,6 +1289,16 @@ func (m *MessageMutation) Field(name string) (ent.Value, bool) {
 // returned if the mutation operation is not UpdateOne, or the query to the
 // database failed.
 func (m *MessageMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case message.FieldCreatedDate:
+		return m.OldCreatedDate(ctx)
+	case message.FieldUpdatedDate:
+		return m.OldUpdatedDate(ctx)
+	case message.FieldDeletedDate:
+		return m.OldDeletedDate(ctx)
+	case message.FieldText:
+		return m.OldText(ctx)
+	}
 	return nil, fmt.Errorf("unknown Message field %s", name)
 }
 
@@ -933,6 +1307,34 @@ func (m *MessageMutation) OldField(ctx context.Context, name string) (ent.Value,
 // type.
 func (m *MessageMutation) SetField(name string, value ent.Value) error {
 	switch name {
+	case message.FieldCreatedDate:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedDate(v)
+		return nil
+	case message.FieldUpdatedDate:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedDate(v)
+		return nil
+	case message.FieldDeletedDate:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeletedDate(v)
+		return nil
+	case message.FieldText:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetText(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Message field %s", name)
 }
@@ -954,13 +1356,19 @@ func (m *MessageMutation) AddedField(name string) (ent.Value, bool) {
 // the field is not defined in the schema, or if the type mismatched the field
 // type.
 func (m *MessageMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
 	return fmt.Errorf("unknown Message numeric field %s", name)
 }
 
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *MessageMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(message.FieldDeletedDate) {
+		fields = append(fields, message.FieldDeletedDate)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -973,60 +1381,169 @@ func (m *MessageMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *MessageMutation) ClearField(name string) error {
+	switch name {
+	case message.FieldDeletedDate:
+		m.ClearDeletedDate()
+		return nil
+	}
 	return fmt.Errorf("unknown Message nullable field %s", name)
 }
 
 // ResetField resets all changes in the mutation for the field with the given name.
 // It returns an error if the field is not defined in the schema.
 func (m *MessageMutation) ResetField(name string) error {
+	switch name {
+	case message.FieldCreatedDate:
+		m.ResetCreatedDate()
+		return nil
+	case message.FieldUpdatedDate:
+		m.ResetUpdatedDate()
+		return nil
+	case message.FieldDeletedDate:
+		m.ResetDeletedDate()
+		return nil
+	case message.FieldText:
+		m.ResetText()
+		return nil
+	}
 	return fmt.Errorf("unknown Message field %s", name)
 }
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *MessageMutation) AddedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 4)
+	if m.owner != nil {
+		edges = append(edges, message.EdgeOwner)
+	}
+	if m.sender != nil {
+		edges = append(edges, message.EdgeSender)
+	}
+	if m.replied != nil {
+		edges = append(edges, message.EdgeReplied)
+	}
+	if m.replied_messages != nil {
+		edges = append(edges, message.EdgeRepliedMessages)
+	}
 	return edges
 }
 
 // AddedIDs returns all IDs (to other nodes) that were added for the given edge
 // name in this mutation.
 func (m *MessageMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case message.EdgeOwner:
+		if id := m.owner; id != nil {
+			return []ent.Value{*id}
+		}
+	case message.EdgeSender:
+		if id := m.sender; id != nil {
+			return []ent.Value{*id}
+		}
+	case message.EdgeReplied:
+		if id := m.replied; id != nil {
+			return []ent.Value{*id}
+		}
+	case message.EdgeRepliedMessages:
+		ids := make([]ent.Value, 0, len(m.replied_messages))
+		for id := range m.replied_messages {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *MessageMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 4)
+	if m.removedreplied_messages != nil {
+		edges = append(edges, message.EdgeRepliedMessages)
+	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *MessageMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case message.EdgeRepliedMessages:
+		ids := make([]ent.Value, 0, len(m.removedreplied_messages))
+		for id := range m.removedreplied_messages {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *MessageMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 4)
+	if m.clearedowner {
+		edges = append(edges, message.EdgeOwner)
+	}
+	if m.clearedsender {
+		edges = append(edges, message.EdgeSender)
+	}
+	if m.clearedreplied {
+		edges = append(edges, message.EdgeReplied)
+	}
+	if m.clearedreplied_messages {
+		edges = append(edges, message.EdgeRepliedMessages)
+	}
 	return edges
 }
 
 // EdgeCleared returns a boolean which indicates if the edge with the given name
 // was cleared in this mutation.
 func (m *MessageMutation) EdgeCleared(name string) bool {
+	switch name {
+	case message.EdgeOwner:
+		return m.clearedowner
+	case message.EdgeSender:
+		return m.clearedsender
+	case message.EdgeReplied:
+		return m.clearedreplied
+	case message.EdgeRepliedMessages:
+		return m.clearedreplied_messages
+	}
 	return false
 }
 
 // ClearEdge clears the value of the edge with the given name. It returns an error
 // if that edge is not defined in the schema.
 func (m *MessageMutation) ClearEdge(name string) error {
+	switch name {
+	case message.EdgeOwner:
+		m.ClearOwner()
+		return nil
+	case message.EdgeSender:
+		m.ClearSender()
+		return nil
+	case message.EdgeReplied:
+		m.ClearReplied()
+		return nil
+	}
 	return fmt.Errorf("unknown Message unique edge %s", name)
 }
 
 // ResetEdge resets all changes to the edge with the given name in this mutation.
 // It returns an error if the edge is not defined in the schema.
 func (m *MessageMutation) ResetEdge(name string) error {
+	switch name {
+	case message.EdgeOwner:
+		m.ResetOwner()
+		return nil
+	case message.EdgeSender:
+		m.ResetSender()
+		return nil
+	case message.EdgeReplied:
+		m.ResetReplied()
+		return nil
+	case message.EdgeRepliedMessages:
+		m.ResetRepliedMessages()
+		return nil
+	}
 	return fmt.Errorf("unknown Message edge %s", name)
 }
 
@@ -1780,18 +2297,24 @@ func (m *PostMutation) ResetEdge(name string) error {
 // RoomMutation represents an operation that mutates the Room nodes in the graph.
 type RoomMutation struct {
 	config
-	op            Op
-	typ           string
-	id            *int
-	title         *string
-	_type         *room.Type
-	clearedFields map[string]struct{}
-	users         map[int]struct{}
-	removedusers  map[int]struct{}
-	clearedusers  bool
-	done          bool
-	oldValue      func(context.Context) (*Room, error)
-	predicates    []predicate.Room
+	op              Op
+	typ             string
+	id              *int
+	created_date    *time.Time
+	updated_date    *time.Time
+	deleted_date    *time.Time
+	title           *string
+	_type           *room.Type
+	clearedFields   map[string]struct{}
+	users           map[int]struct{}
+	removedusers    map[int]struct{}
+	clearedusers    bool
+	messages        map[int]struct{}
+	removedmessages map[int]struct{}
+	clearedmessages bool
+	done            bool
+	oldValue        func(context.Context) (*Room, error)
+	predicates      []predicate.Room
 }
 
 var _ ent.Mutation = (*RoomMutation)(nil)
@@ -1890,6 +2413,127 @@ func (m *RoomMutation) IDs(ctx context.Context) ([]int, error) {
 	default:
 		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
 	}
+}
+
+// SetCreatedDate sets the "created_date" field.
+func (m *RoomMutation) SetCreatedDate(t time.Time) {
+	m.created_date = &t
+}
+
+// CreatedDate returns the value of the "created_date" field in the mutation.
+func (m *RoomMutation) CreatedDate() (r time.Time, exists bool) {
+	v := m.created_date
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedDate returns the old "created_date" field's value of the Room entity.
+// If the Room object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RoomMutation) OldCreatedDate(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedDate is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedDate requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedDate: %w", err)
+	}
+	return oldValue.CreatedDate, nil
+}
+
+// ResetCreatedDate resets all changes to the "created_date" field.
+func (m *RoomMutation) ResetCreatedDate() {
+	m.created_date = nil
+}
+
+// SetUpdatedDate sets the "updated_date" field.
+func (m *RoomMutation) SetUpdatedDate(t time.Time) {
+	m.updated_date = &t
+}
+
+// UpdatedDate returns the value of the "updated_date" field in the mutation.
+func (m *RoomMutation) UpdatedDate() (r time.Time, exists bool) {
+	v := m.updated_date
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedDate returns the old "updated_date" field's value of the Room entity.
+// If the Room object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RoomMutation) OldUpdatedDate(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedDate is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedDate requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedDate: %w", err)
+	}
+	return oldValue.UpdatedDate, nil
+}
+
+// ResetUpdatedDate resets all changes to the "updated_date" field.
+func (m *RoomMutation) ResetUpdatedDate() {
+	m.updated_date = nil
+}
+
+// SetDeletedDate sets the "deleted_date" field.
+func (m *RoomMutation) SetDeletedDate(t time.Time) {
+	m.deleted_date = &t
+}
+
+// DeletedDate returns the value of the "deleted_date" field in the mutation.
+func (m *RoomMutation) DeletedDate() (r time.Time, exists bool) {
+	v := m.deleted_date
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDeletedDate returns the old "deleted_date" field's value of the Room entity.
+// If the Room object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RoomMutation) OldDeletedDate(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDeletedDate is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDeletedDate requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDeletedDate: %w", err)
+	}
+	return oldValue.DeletedDate, nil
+}
+
+// ClearDeletedDate clears the value of the "deleted_date" field.
+func (m *RoomMutation) ClearDeletedDate() {
+	m.deleted_date = nil
+	m.clearedFields[room.FieldDeletedDate] = struct{}{}
+}
+
+// DeletedDateCleared returns if the "deleted_date" field was cleared in this mutation.
+func (m *RoomMutation) DeletedDateCleared() bool {
+	_, ok := m.clearedFields[room.FieldDeletedDate]
+	return ok
+}
+
+// ResetDeletedDate resets all changes to the "deleted_date" field.
+func (m *RoomMutation) ResetDeletedDate() {
+	m.deleted_date = nil
+	delete(m.clearedFields, room.FieldDeletedDate)
 }
 
 // SetTitle sets the "title" field.
@@ -2031,6 +2675,60 @@ func (m *RoomMutation) ResetUsers() {
 	m.removedusers = nil
 }
 
+// AddMessageIDs adds the "messages" edge to the Message entity by ids.
+func (m *RoomMutation) AddMessageIDs(ids ...int) {
+	if m.messages == nil {
+		m.messages = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.messages[ids[i]] = struct{}{}
+	}
+}
+
+// ClearMessages clears the "messages" edge to the Message entity.
+func (m *RoomMutation) ClearMessages() {
+	m.clearedmessages = true
+}
+
+// MessagesCleared reports if the "messages" edge to the Message entity was cleared.
+func (m *RoomMutation) MessagesCleared() bool {
+	return m.clearedmessages
+}
+
+// RemoveMessageIDs removes the "messages" edge to the Message entity by IDs.
+func (m *RoomMutation) RemoveMessageIDs(ids ...int) {
+	if m.removedmessages == nil {
+		m.removedmessages = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.messages, ids[i])
+		m.removedmessages[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedMessages returns the removed IDs of the "messages" edge to the Message entity.
+func (m *RoomMutation) RemovedMessagesIDs() (ids []int) {
+	for id := range m.removedmessages {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// MessagesIDs returns the "messages" edge IDs in the mutation.
+func (m *RoomMutation) MessagesIDs() (ids []int) {
+	for id := range m.messages {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetMessages resets all changes to the "messages" edge.
+func (m *RoomMutation) ResetMessages() {
+	m.messages = nil
+	m.clearedmessages = false
+	m.removedmessages = nil
+}
+
 // Where appends a list predicates to the RoomMutation builder.
 func (m *RoomMutation) Where(ps ...predicate.Room) {
 	m.predicates = append(m.predicates, ps...)
@@ -2050,7 +2748,16 @@ func (m *RoomMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *RoomMutation) Fields() []string {
-	fields := make([]string, 0, 2)
+	fields := make([]string, 0, 5)
+	if m.created_date != nil {
+		fields = append(fields, room.FieldCreatedDate)
+	}
+	if m.updated_date != nil {
+		fields = append(fields, room.FieldUpdatedDate)
+	}
+	if m.deleted_date != nil {
+		fields = append(fields, room.FieldDeletedDate)
+	}
 	if m.title != nil {
 		fields = append(fields, room.FieldTitle)
 	}
@@ -2065,6 +2772,12 @@ func (m *RoomMutation) Fields() []string {
 // schema.
 func (m *RoomMutation) Field(name string) (ent.Value, bool) {
 	switch name {
+	case room.FieldCreatedDate:
+		return m.CreatedDate()
+	case room.FieldUpdatedDate:
+		return m.UpdatedDate()
+	case room.FieldDeletedDate:
+		return m.DeletedDate()
 	case room.FieldTitle:
 		return m.Title()
 	case room.FieldType:
@@ -2078,6 +2791,12 @@ func (m *RoomMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *RoomMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
+	case room.FieldCreatedDate:
+		return m.OldCreatedDate(ctx)
+	case room.FieldUpdatedDate:
+		return m.OldUpdatedDate(ctx)
+	case room.FieldDeletedDate:
+		return m.OldDeletedDate(ctx)
 	case room.FieldTitle:
 		return m.OldTitle(ctx)
 	case room.FieldType:
@@ -2091,6 +2810,27 @@ func (m *RoomMutation) OldField(ctx context.Context, name string) (ent.Value, er
 // type.
 func (m *RoomMutation) SetField(name string, value ent.Value) error {
 	switch name {
+	case room.FieldCreatedDate:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedDate(v)
+		return nil
+	case room.FieldUpdatedDate:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedDate(v)
+		return nil
+	case room.FieldDeletedDate:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeletedDate(v)
+		return nil
 	case room.FieldTitle:
 		v, ok := value.(string)
 		if !ok {
@@ -2135,6 +2875,9 @@ func (m *RoomMutation) AddField(name string, value ent.Value) error {
 // mutation.
 func (m *RoomMutation) ClearedFields() []string {
 	var fields []string
+	if m.FieldCleared(room.FieldDeletedDate) {
+		fields = append(fields, room.FieldDeletedDate)
+	}
 	if m.FieldCleared(room.FieldTitle) {
 		fields = append(fields, room.FieldTitle)
 	}
@@ -2152,6 +2895,9 @@ func (m *RoomMutation) FieldCleared(name string) bool {
 // error if the field is not defined in the schema.
 func (m *RoomMutation) ClearField(name string) error {
 	switch name {
+	case room.FieldDeletedDate:
+		m.ClearDeletedDate()
+		return nil
 	case room.FieldTitle:
 		m.ClearTitle()
 		return nil
@@ -2163,6 +2909,15 @@ func (m *RoomMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *RoomMutation) ResetField(name string) error {
 	switch name {
+	case room.FieldCreatedDate:
+		m.ResetCreatedDate()
+		return nil
+	case room.FieldUpdatedDate:
+		m.ResetUpdatedDate()
+		return nil
+	case room.FieldDeletedDate:
+		m.ResetDeletedDate()
+		return nil
 	case room.FieldTitle:
 		m.ResetTitle()
 		return nil
@@ -2175,9 +2930,12 @@ func (m *RoomMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *RoomMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.users != nil {
 		edges = append(edges, room.EdgeUsers)
+	}
+	if m.messages != nil {
+		edges = append(edges, room.EdgeMessages)
 	}
 	return edges
 }
@@ -2192,15 +2950,24 @@ func (m *RoomMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case room.EdgeMessages:
+		ids := make([]ent.Value, 0, len(m.messages))
+		for id := range m.messages {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *RoomMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.removedusers != nil {
 		edges = append(edges, room.EdgeUsers)
+	}
+	if m.removedmessages != nil {
+		edges = append(edges, room.EdgeMessages)
 	}
 	return edges
 }
@@ -2215,15 +2982,24 @@ func (m *RoomMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case room.EdgeMessages:
+		ids := make([]ent.Value, 0, len(m.removedmessages))
+		for id := range m.removedmessages {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *RoomMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.clearedusers {
 		edges = append(edges, room.EdgeUsers)
+	}
+	if m.clearedmessages {
+		edges = append(edges, room.EdgeMessages)
 	}
 	return edges
 }
@@ -2234,6 +3010,8 @@ func (m *RoomMutation) EdgeCleared(name string) bool {
 	switch name {
 	case room.EdgeUsers:
 		return m.clearedusers
+	case room.EdgeMessages:
+		return m.clearedmessages
 	}
 	return false
 }
@@ -2252,6 +3030,9 @@ func (m *RoomMutation) ResetEdge(name string) error {
 	switch name {
 	case room.EdgeUsers:
 		m.ResetUsers()
+		return nil
+	case room.EdgeMessages:
+		m.ResetMessages()
 		return nil
 	}
 	return fmt.Errorf("unknown Room edge %s", name)
@@ -2285,6 +3066,9 @@ type UserMutation struct {
 	rooms            map[int]struct{}
 	removedrooms     map[int]struct{}
 	clearedrooms     bool
+	messages         map[int]struct{}
+	removedmessages  map[int]struct{}
+	clearedmessages  bool
 	done             bool
 	oldValue         func(context.Context) (*User, error)
 	predicates       []predicate.User
@@ -2980,6 +3764,60 @@ func (m *UserMutation) ResetRooms() {
 	m.removedrooms = nil
 }
 
+// AddMessageIDs adds the "messages" edge to the Message entity by ids.
+func (m *UserMutation) AddMessageIDs(ids ...int) {
+	if m.messages == nil {
+		m.messages = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.messages[ids[i]] = struct{}{}
+	}
+}
+
+// ClearMessages clears the "messages" edge to the Message entity.
+func (m *UserMutation) ClearMessages() {
+	m.clearedmessages = true
+}
+
+// MessagesCleared reports if the "messages" edge to the Message entity was cleared.
+func (m *UserMutation) MessagesCleared() bool {
+	return m.clearedmessages
+}
+
+// RemoveMessageIDs removes the "messages" edge to the Message entity by IDs.
+func (m *UserMutation) RemoveMessageIDs(ids ...int) {
+	if m.removedmessages == nil {
+		m.removedmessages = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.messages, ids[i])
+		m.removedmessages[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedMessages returns the removed IDs of the "messages" edge to the Message entity.
+func (m *UserMutation) RemovedMessagesIDs() (ids []int) {
+	for id := range m.removedmessages {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// MessagesIDs returns the "messages" edge IDs in the mutation.
+func (m *UserMutation) MessagesIDs() (ids []int) {
+	for id := range m.messages {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetMessages resets all changes to the "messages" edge.
+func (m *UserMutation) ResetMessages() {
+	m.messages = nil
+	m.clearedmessages = false
+	m.removedmessages = nil
+}
+
 // Where appends a list predicates to the UserMutation builder.
 func (m *UserMutation) Where(ps ...predicate.User) {
 	m.predicates = append(m.predicates, ps...)
@@ -3261,7 +4099,7 @@ func (m *UserMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *UserMutation) AddedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 5)
 	if m.posts != nil {
 		edges = append(edges, user.EdgePosts)
 	}
@@ -3273,6 +4111,9 @@ func (m *UserMutation) AddedEdges() []string {
 	}
 	if m.rooms != nil {
 		edges = append(edges, user.EdgeRooms)
+	}
+	if m.messages != nil {
+		edges = append(edges, user.EdgeMessages)
 	}
 	return edges
 }
@@ -3305,13 +4146,19 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeMessages:
+		ids := make([]ent.Value, 0, len(m.messages))
+		for id := range m.messages {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UserMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 5)
 	if m.removedposts != nil {
 		edges = append(edges, user.EdgePosts)
 	}
@@ -3323,6 +4170,9 @@ func (m *UserMutation) RemovedEdges() []string {
 	}
 	if m.removedrooms != nil {
 		edges = append(edges, user.EdgeRooms)
+	}
+	if m.removedmessages != nil {
+		edges = append(edges, user.EdgeMessages)
 	}
 	return edges
 }
@@ -3355,13 +4205,19 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeMessages:
+		ids := make([]ent.Value, 0, len(m.removedmessages))
+		for id := range m.removedmessages {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *UserMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 5)
 	if m.clearedposts {
 		edges = append(edges, user.EdgePosts)
 	}
@@ -3373,6 +4229,9 @@ func (m *UserMutation) ClearedEdges() []string {
 	}
 	if m.clearedrooms {
 		edges = append(edges, user.EdgeRooms)
+	}
+	if m.clearedmessages {
+		edges = append(edges, user.EdgeMessages)
 	}
 	return edges
 }
@@ -3389,6 +4248,8 @@ func (m *UserMutation) EdgeCleared(name string) bool {
 		return m.clearedfollowing
 	case user.EdgeRooms:
 		return m.clearedrooms
+	case user.EdgeMessages:
+		return m.clearedmessages
 	}
 	return false
 }
@@ -3416,6 +4277,9 @@ func (m *UserMutation) ResetEdge(name string) error {
 		return nil
 	case user.EdgeRooms:
 		m.ResetRooms()
+		return nil
+	case user.EdgeMessages:
+		m.ResetMessages()
 		return nil
 	}
 	return fmt.Errorf("unknown User edge %s", name)

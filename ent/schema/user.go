@@ -39,6 +39,7 @@ func (User) Edges() []ent.Edge {
 		}),
 		edge.To("following", User.Type).From("followers"),
 		edge.To("rooms", Room.Type),
+		edge.To("messages", Message.Type),
 	}
 }
 

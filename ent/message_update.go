@@ -8,6 +8,9 @@ import (
 	"fmt"
 	"moments/ent/message"
 	"moments/ent/predicate"
+	"moments/ent/room"
+	"moments/ent/user"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -27,9 +30,174 @@ func (mu *MessageUpdate) Where(ps ...predicate.Message) *MessageUpdate {
 	return mu
 }
 
+// SetCreatedDate sets the "created_date" field.
+func (mu *MessageUpdate) SetCreatedDate(t time.Time) *MessageUpdate {
+	mu.mutation.SetCreatedDate(t)
+	return mu
+}
+
+// SetNillableCreatedDate sets the "created_date" field if the given value is not nil.
+func (mu *MessageUpdate) SetNillableCreatedDate(t *time.Time) *MessageUpdate {
+	if t != nil {
+		mu.SetCreatedDate(*t)
+	}
+	return mu
+}
+
+// SetUpdatedDate sets the "updated_date" field.
+func (mu *MessageUpdate) SetUpdatedDate(t time.Time) *MessageUpdate {
+	mu.mutation.SetUpdatedDate(t)
+	return mu
+}
+
+// SetNillableUpdatedDate sets the "updated_date" field if the given value is not nil.
+func (mu *MessageUpdate) SetNillableUpdatedDate(t *time.Time) *MessageUpdate {
+	if t != nil {
+		mu.SetUpdatedDate(*t)
+	}
+	return mu
+}
+
+// SetDeletedDate sets the "deleted_date" field.
+func (mu *MessageUpdate) SetDeletedDate(t time.Time) *MessageUpdate {
+	mu.mutation.SetDeletedDate(t)
+	return mu
+}
+
+// SetNillableDeletedDate sets the "deleted_date" field if the given value is not nil.
+func (mu *MessageUpdate) SetNillableDeletedDate(t *time.Time) *MessageUpdate {
+	if t != nil {
+		mu.SetDeletedDate(*t)
+	}
+	return mu
+}
+
+// ClearDeletedDate clears the value of the "deleted_date" field.
+func (mu *MessageUpdate) ClearDeletedDate() *MessageUpdate {
+	mu.mutation.ClearDeletedDate()
+	return mu
+}
+
+// SetText sets the "text" field.
+func (mu *MessageUpdate) SetText(s string) *MessageUpdate {
+	mu.mutation.SetText(s)
+	return mu
+}
+
+// SetOwnerID sets the "owner" edge to the Room entity by ID.
+func (mu *MessageUpdate) SetOwnerID(id int) *MessageUpdate {
+	mu.mutation.SetOwnerID(id)
+	return mu
+}
+
+// SetNillableOwnerID sets the "owner" edge to the Room entity by ID if the given value is not nil.
+func (mu *MessageUpdate) SetNillableOwnerID(id *int) *MessageUpdate {
+	if id != nil {
+		mu = mu.SetOwnerID(*id)
+	}
+	return mu
+}
+
+// SetOwner sets the "owner" edge to the Room entity.
+func (mu *MessageUpdate) SetOwner(r *Room) *MessageUpdate {
+	return mu.SetOwnerID(r.ID)
+}
+
+// SetSenderID sets the "sender" edge to the User entity by ID.
+func (mu *MessageUpdate) SetSenderID(id int) *MessageUpdate {
+	mu.mutation.SetSenderID(id)
+	return mu
+}
+
+// SetNillableSenderID sets the "sender" edge to the User entity by ID if the given value is not nil.
+func (mu *MessageUpdate) SetNillableSenderID(id *int) *MessageUpdate {
+	if id != nil {
+		mu = mu.SetSenderID(*id)
+	}
+	return mu
+}
+
+// SetSender sets the "sender" edge to the User entity.
+func (mu *MessageUpdate) SetSender(u *User) *MessageUpdate {
+	return mu.SetSenderID(u.ID)
+}
+
+// SetRepliedID sets the "replied" edge to the Message entity by ID.
+func (mu *MessageUpdate) SetRepliedID(id int) *MessageUpdate {
+	mu.mutation.SetRepliedID(id)
+	return mu
+}
+
+// SetNillableRepliedID sets the "replied" edge to the Message entity by ID if the given value is not nil.
+func (mu *MessageUpdate) SetNillableRepliedID(id *int) *MessageUpdate {
+	if id != nil {
+		mu = mu.SetRepliedID(*id)
+	}
+	return mu
+}
+
+// SetReplied sets the "replied" edge to the Message entity.
+func (mu *MessageUpdate) SetReplied(m *Message) *MessageUpdate {
+	return mu.SetRepliedID(m.ID)
+}
+
+// AddRepliedMessageIDs adds the "replied_messages" edge to the Message entity by IDs.
+func (mu *MessageUpdate) AddRepliedMessageIDs(ids ...int) *MessageUpdate {
+	mu.mutation.AddRepliedMessageIDs(ids...)
+	return mu
+}
+
+// AddRepliedMessages adds the "replied_messages" edges to the Message entity.
+func (mu *MessageUpdate) AddRepliedMessages(m ...*Message) *MessageUpdate {
+	ids := make([]int, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
+	}
+	return mu.AddRepliedMessageIDs(ids...)
+}
+
 // Mutation returns the MessageMutation object of the builder.
 func (mu *MessageUpdate) Mutation() *MessageMutation {
 	return mu.mutation
+}
+
+// ClearOwner clears the "owner" edge to the Room entity.
+func (mu *MessageUpdate) ClearOwner() *MessageUpdate {
+	mu.mutation.ClearOwner()
+	return mu
+}
+
+// ClearSender clears the "sender" edge to the User entity.
+func (mu *MessageUpdate) ClearSender() *MessageUpdate {
+	mu.mutation.ClearSender()
+	return mu
+}
+
+// ClearReplied clears the "replied" edge to the Message entity.
+func (mu *MessageUpdate) ClearReplied() *MessageUpdate {
+	mu.mutation.ClearReplied()
+	return mu
+}
+
+// ClearRepliedMessages clears all "replied_messages" edges to the Message entity.
+func (mu *MessageUpdate) ClearRepliedMessages() *MessageUpdate {
+	mu.mutation.ClearRepliedMessages()
+	return mu
+}
+
+// RemoveRepliedMessageIDs removes the "replied_messages" edge to Message entities by IDs.
+func (mu *MessageUpdate) RemoveRepliedMessageIDs(ids ...int) *MessageUpdate {
+	mu.mutation.RemoveRepliedMessageIDs(ids...)
+	return mu
+}
+
+// RemoveRepliedMessages removes "replied_messages" edges to Message entities.
+func (mu *MessageUpdate) RemoveRepliedMessages(m ...*Message) *MessageUpdate {
+	ids := make([]int, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
+	}
+	return mu.RemoveRepliedMessageIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -39,12 +207,18 @@ func (mu *MessageUpdate) Save(ctx context.Context) (int, error) {
 		affected int
 	)
 	if len(mu.hooks) == 0 {
+		if err = mu.check(); err != nil {
+			return 0, err
+		}
 		affected, err = mu.sqlSave(ctx)
 	} else {
 		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 			mutation, ok := m.(*MessageMutation)
 			if !ok {
 				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			if err = mu.check(); err != nil {
+				return 0, err
 			}
 			mu.mutation = mutation
 			affected, err = mu.sqlSave(ctx)
@@ -86,6 +260,16 @@ func (mu *MessageUpdate) ExecX(ctx context.Context) {
 	}
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (mu *MessageUpdate) check() error {
+	if v, ok := mu.mutation.Text(); ok {
+		if err := message.TextValidator(v); err != nil {
+			return &ValidationError{Name: "text", err: fmt.Errorf(`ent: validator failed for field "Message.text": %w`, err)}
+		}
+	}
+	return nil
+}
+
 func (mu *MessageUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
@@ -103,6 +287,199 @@ func (mu *MessageUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := mu.mutation.CreatedDate(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  value,
+			Column: message.FieldCreatedDate,
+		})
+	}
+	if value, ok := mu.mutation.UpdatedDate(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  value,
+			Column: message.FieldUpdatedDate,
+		})
+	}
+	if value, ok := mu.mutation.DeletedDate(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  value,
+			Column: message.FieldDeletedDate,
+		})
+	}
+	if mu.mutation.DeletedDateCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Column: message.FieldDeletedDate,
+		})
+	}
+	if value, ok := mu.mutation.Text(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: message.FieldText,
+		})
+	}
+	if mu.mutation.OwnerCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   message.OwnerTable,
+			Columns: []string{message.OwnerColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: room.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := mu.mutation.OwnerIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   message.OwnerTable,
+			Columns: []string{message.OwnerColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: room.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if mu.mutation.SenderCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   message.SenderTable,
+			Columns: []string{message.SenderColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: user.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := mu.mutation.SenderIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   message.SenderTable,
+			Columns: []string{message.SenderColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if mu.mutation.RepliedCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   message.RepliedTable,
+			Columns: []string{message.RepliedColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: message.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := mu.mutation.RepliedIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   message.RepliedTable,
+			Columns: []string{message.RepliedColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: message.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if mu.mutation.RepliedMessagesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   message.RepliedMessagesTable,
+			Columns: []string{message.RepliedMessagesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: message.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := mu.mutation.RemovedRepliedMessagesIDs(); len(nodes) > 0 && !mu.mutation.RepliedMessagesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   message.RepliedMessagesTable,
+			Columns: []string{message.RepliedMessagesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: message.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := mu.mutation.RepliedMessagesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   message.RepliedMessagesTable,
+			Columns: []string{message.RepliedMessagesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: message.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, mu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -123,9 +500,174 @@ type MessageUpdateOne struct {
 	mutation *MessageMutation
 }
 
+// SetCreatedDate sets the "created_date" field.
+func (muo *MessageUpdateOne) SetCreatedDate(t time.Time) *MessageUpdateOne {
+	muo.mutation.SetCreatedDate(t)
+	return muo
+}
+
+// SetNillableCreatedDate sets the "created_date" field if the given value is not nil.
+func (muo *MessageUpdateOne) SetNillableCreatedDate(t *time.Time) *MessageUpdateOne {
+	if t != nil {
+		muo.SetCreatedDate(*t)
+	}
+	return muo
+}
+
+// SetUpdatedDate sets the "updated_date" field.
+func (muo *MessageUpdateOne) SetUpdatedDate(t time.Time) *MessageUpdateOne {
+	muo.mutation.SetUpdatedDate(t)
+	return muo
+}
+
+// SetNillableUpdatedDate sets the "updated_date" field if the given value is not nil.
+func (muo *MessageUpdateOne) SetNillableUpdatedDate(t *time.Time) *MessageUpdateOne {
+	if t != nil {
+		muo.SetUpdatedDate(*t)
+	}
+	return muo
+}
+
+// SetDeletedDate sets the "deleted_date" field.
+func (muo *MessageUpdateOne) SetDeletedDate(t time.Time) *MessageUpdateOne {
+	muo.mutation.SetDeletedDate(t)
+	return muo
+}
+
+// SetNillableDeletedDate sets the "deleted_date" field if the given value is not nil.
+func (muo *MessageUpdateOne) SetNillableDeletedDate(t *time.Time) *MessageUpdateOne {
+	if t != nil {
+		muo.SetDeletedDate(*t)
+	}
+	return muo
+}
+
+// ClearDeletedDate clears the value of the "deleted_date" field.
+func (muo *MessageUpdateOne) ClearDeletedDate() *MessageUpdateOne {
+	muo.mutation.ClearDeletedDate()
+	return muo
+}
+
+// SetText sets the "text" field.
+func (muo *MessageUpdateOne) SetText(s string) *MessageUpdateOne {
+	muo.mutation.SetText(s)
+	return muo
+}
+
+// SetOwnerID sets the "owner" edge to the Room entity by ID.
+func (muo *MessageUpdateOne) SetOwnerID(id int) *MessageUpdateOne {
+	muo.mutation.SetOwnerID(id)
+	return muo
+}
+
+// SetNillableOwnerID sets the "owner" edge to the Room entity by ID if the given value is not nil.
+func (muo *MessageUpdateOne) SetNillableOwnerID(id *int) *MessageUpdateOne {
+	if id != nil {
+		muo = muo.SetOwnerID(*id)
+	}
+	return muo
+}
+
+// SetOwner sets the "owner" edge to the Room entity.
+func (muo *MessageUpdateOne) SetOwner(r *Room) *MessageUpdateOne {
+	return muo.SetOwnerID(r.ID)
+}
+
+// SetSenderID sets the "sender" edge to the User entity by ID.
+func (muo *MessageUpdateOne) SetSenderID(id int) *MessageUpdateOne {
+	muo.mutation.SetSenderID(id)
+	return muo
+}
+
+// SetNillableSenderID sets the "sender" edge to the User entity by ID if the given value is not nil.
+func (muo *MessageUpdateOne) SetNillableSenderID(id *int) *MessageUpdateOne {
+	if id != nil {
+		muo = muo.SetSenderID(*id)
+	}
+	return muo
+}
+
+// SetSender sets the "sender" edge to the User entity.
+func (muo *MessageUpdateOne) SetSender(u *User) *MessageUpdateOne {
+	return muo.SetSenderID(u.ID)
+}
+
+// SetRepliedID sets the "replied" edge to the Message entity by ID.
+func (muo *MessageUpdateOne) SetRepliedID(id int) *MessageUpdateOne {
+	muo.mutation.SetRepliedID(id)
+	return muo
+}
+
+// SetNillableRepliedID sets the "replied" edge to the Message entity by ID if the given value is not nil.
+func (muo *MessageUpdateOne) SetNillableRepliedID(id *int) *MessageUpdateOne {
+	if id != nil {
+		muo = muo.SetRepliedID(*id)
+	}
+	return muo
+}
+
+// SetReplied sets the "replied" edge to the Message entity.
+func (muo *MessageUpdateOne) SetReplied(m *Message) *MessageUpdateOne {
+	return muo.SetRepliedID(m.ID)
+}
+
+// AddRepliedMessageIDs adds the "replied_messages" edge to the Message entity by IDs.
+func (muo *MessageUpdateOne) AddRepliedMessageIDs(ids ...int) *MessageUpdateOne {
+	muo.mutation.AddRepliedMessageIDs(ids...)
+	return muo
+}
+
+// AddRepliedMessages adds the "replied_messages" edges to the Message entity.
+func (muo *MessageUpdateOne) AddRepliedMessages(m ...*Message) *MessageUpdateOne {
+	ids := make([]int, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
+	}
+	return muo.AddRepliedMessageIDs(ids...)
+}
+
 // Mutation returns the MessageMutation object of the builder.
 func (muo *MessageUpdateOne) Mutation() *MessageMutation {
 	return muo.mutation
+}
+
+// ClearOwner clears the "owner" edge to the Room entity.
+func (muo *MessageUpdateOne) ClearOwner() *MessageUpdateOne {
+	muo.mutation.ClearOwner()
+	return muo
+}
+
+// ClearSender clears the "sender" edge to the User entity.
+func (muo *MessageUpdateOne) ClearSender() *MessageUpdateOne {
+	muo.mutation.ClearSender()
+	return muo
+}
+
+// ClearReplied clears the "replied" edge to the Message entity.
+func (muo *MessageUpdateOne) ClearReplied() *MessageUpdateOne {
+	muo.mutation.ClearReplied()
+	return muo
+}
+
+// ClearRepliedMessages clears all "replied_messages" edges to the Message entity.
+func (muo *MessageUpdateOne) ClearRepliedMessages() *MessageUpdateOne {
+	muo.mutation.ClearRepliedMessages()
+	return muo
+}
+
+// RemoveRepliedMessageIDs removes the "replied_messages" edge to Message entities by IDs.
+func (muo *MessageUpdateOne) RemoveRepliedMessageIDs(ids ...int) *MessageUpdateOne {
+	muo.mutation.RemoveRepliedMessageIDs(ids...)
+	return muo
+}
+
+// RemoveRepliedMessages removes "replied_messages" edges to Message entities.
+func (muo *MessageUpdateOne) RemoveRepliedMessages(m ...*Message) *MessageUpdateOne {
+	ids := make([]int, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
+	}
+	return muo.RemoveRepliedMessageIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -142,12 +684,18 @@ func (muo *MessageUpdateOne) Save(ctx context.Context) (*Message, error) {
 		node *Message
 	)
 	if len(muo.hooks) == 0 {
+		if err = muo.check(); err != nil {
+			return nil, err
+		}
 		node, err = muo.sqlSave(ctx)
 	} else {
 		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 			mutation, ok := m.(*MessageMutation)
 			if !ok {
 				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			if err = muo.check(); err != nil {
+				return nil, err
 			}
 			muo.mutation = mutation
 			node, err = muo.sqlSave(ctx)
@@ -195,6 +743,16 @@ func (muo *MessageUpdateOne) ExecX(ctx context.Context) {
 	}
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (muo *MessageUpdateOne) check() error {
+	if v, ok := muo.mutation.Text(); ok {
+		if err := message.TextValidator(v); err != nil {
+			return &ValidationError{Name: "text", err: fmt.Errorf(`ent: validator failed for field "Message.text": %w`, err)}
+		}
+	}
+	return nil
+}
+
 func (muo *MessageUpdateOne) sqlSave(ctx context.Context) (_node *Message, err error) {
 	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
@@ -229,6 +787,199 @@ func (muo *MessageUpdateOne) sqlSave(ctx context.Context) (_node *Message, err e
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := muo.mutation.CreatedDate(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  value,
+			Column: message.FieldCreatedDate,
+		})
+	}
+	if value, ok := muo.mutation.UpdatedDate(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  value,
+			Column: message.FieldUpdatedDate,
+		})
+	}
+	if value, ok := muo.mutation.DeletedDate(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  value,
+			Column: message.FieldDeletedDate,
+		})
+	}
+	if muo.mutation.DeletedDateCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Column: message.FieldDeletedDate,
+		})
+	}
+	if value, ok := muo.mutation.Text(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: message.FieldText,
+		})
+	}
+	if muo.mutation.OwnerCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   message.OwnerTable,
+			Columns: []string{message.OwnerColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: room.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := muo.mutation.OwnerIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   message.OwnerTable,
+			Columns: []string{message.OwnerColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: room.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if muo.mutation.SenderCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   message.SenderTable,
+			Columns: []string{message.SenderColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: user.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := muo.mutation.SenderIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   message.SenderTable,
+			Columns: []string{message.SenderColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if muo.mutation.RepliedCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   message.RepliedTable,
+			Columns: []string{message.RepliedColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: message.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := muo.mutation.RepliedIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   message.RepliedTable,
+			Columns: []string{message.RepliedColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: message.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if muo.mutation.RepliedMessagesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   message.RepliedMessagesTable,
+			Columns: []string{message.RepliedMessagesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: message.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := muo.mutation.RemovedRepliedMessagesIDs(); len(nodes) > 0 && !muo.mutation.RepliedMessagesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   message.RepliedMessagesTable,
+			Columns: []string{message.RepliedMessagesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: message.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := muo.mutation.RepliedMessagesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   message.RepliedMessagesTable,
+			Columns: []string{message.RepliedMessagesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: message.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &Message{config: muo.config}
 	_spec.Assign = _node.assignValues

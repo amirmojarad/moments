@@ -2,18 +2,72 @@
 
 package message
 
+import (
+	"time"
+)
+
 const (
 	// Label holds the string label denoting the message type in the database.
 	Label = "message"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
+	// FieldCreatedDate holds the string denoting the created_date field in the database.
+	FieldCreatedDate = "created_date"
+	// FieldUpdatedDate holds the string denoting the updated_date field in the database.
+	FieldUpdatedDate = "updated_date"
+	// FieldDeletedDate holds the string denoting the deleted_date field in the database.
+	FieldDeletedDate = "deleted_date"
+	// FieldText holds the string denoting the text field in the database.
+	FieldText = "text"
+	// EdgeOwner holds the string denoting the owner edge name in mutations.
+	EdgeOwner = "owner"
+	// EdgeSender holds the string denoting the sender edge name in mutations.
+	EdgeSender = "sender"
+	// EdgeReplied holds the string denoting the replied edge name in mutations.
+	EdgeReplied = "replied"
+	// EdgeRepliedMessages holds the string denoting the replied_messages edge name in mutations.
+	EdgeRepliedMessages = "replied_messages"
 	// Table holds the table name of the message in the database.
 	Table = "messages"
+	// OwnerTable is the table that holds the owner relation/edge.
+	OwnerTable = "messages"
+	// OwnerInverseTable is the table name for the Room entity.
+	// It exists in this package in order to avoid circular dependency with the "room" package.
+	OwnerInverseTable = "rooms"
+	// OwnerColumn is the table column denoting the owner relation/edge.
+	OwnerColumn = "room_messages"
+	// SenderTable is the table that holds the sender relation/edge.
+	SenderTable = "messages"
+	// SenderInverseTable is the table name for the User entity.
+	// It exists in this package in order to avoid circular dependency with the "user" package.
+	SenderInverseTable = "users"
+	// SenderColumn is the table column denoting the sender relation/edge.
+	SenderColumn = "user_messages"
+	// RepliedTable is the table that holds the replied relation/edge.
+	RepliedTable = "messages"
+	// RepliedColumn is the table column denoting the replied relation/edge.
+	RepliedColumn = "message_replied_messages"
+	// RepliedMessagesTable is the table that holds the replied_messages relation/edge.
+	RepliedMessagesTable = "messages"
+	// RepliedMessagesColumn is the table column denoting the replied_messages relation/edge.
+	RepliedMessagesColumn = "message_replied_messages"
 )
 
 // Columns holds all SQL columns for message fields.
 var Columns = []string{
 	FieldID,
+	FieldCreatedDate,
+	FieldUpdatedDate,
+	FieldDeletedDate,
+	FieldText,
+}
+
+// ForeignKeys holds the SQL foreign-keys that are owned by the "messages"
+// table and are not defined as standalone fields in the schema.
+var ForeignKeys = []string{
+	"message_replied_messages",
+	"room_messages",
+	"user_messages",
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -23,5 +77,19 @@ func ValidColumn(column string) bool {
 			return true
 		}
 	}
+	for i := range ForeignKeys {
+		if column == ForeignKeys[i] {
+			return true
+		}
+	}
 	return false
 }
+
+var (
+	// DefaultCreatedDate holds the default value on creation for the "created_date" field.
+	DefaultCreatedDate time.Time
+	// DefaultUpdatedDate holds the default value on creation for the "updated_date" field.
+	DefaultUpdatedDate time.Time
+	// TextValidator is a validator for the "text" field. It is called by the builders before save.
+	TextValidator func(string) error
+)

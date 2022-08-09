@@ -41,12 +41,39 @@ var (
 	// MessagesColumns holds the columns for the "messages" table.
 	MessagesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_date", Type: field.TypeTime},
+		{Name: "updated_date", Type: field.TypeTime},
+		{Name: "deleted_date", Type: field.TypeTime, Nullable: true},
+		{Name: "text", Type: field.TypeString, Size: 2147483647},
+		{Name: "message_replied_messages", Type: field.TypeInt, Nullable: true},
+		{Name: "room_messages", Type: field.TypeInt, Nullable: true},
+		{Name: "user_messages", Type: field.TypeInt, Nullable: true},
 	}
 	// MessagesTable holds the schema information for the "messages" table.
 	MessagesTable = &schema.Table{
 		Name:       "messages",
 		Columns:    MessagesColumns,
 		PrimaryKey: []*schema.Column{MessagesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "messages_messages_replied_messages",
+				Columns:    []*schema.Column{MessagesColumns[5]},
+				RefColumns: []*schema.Column{MessagesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "messages_rooms_messages",
+				Columns:    []*schema.Column{MessagesColumns[6]},
+				RefColumns: []*schema.Column{RoomsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "messages_users_messages",
+				Columns:    []*schema.Column{MessagesColumns[7]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
 	}
 	// PostsColumns holds the columns for the "posts" table.
 	PostsColumns = []*schema.Column{
@@ -76,6 +103,9 @@ var (
 	// RoomsColumns holds the columns for the "rooms" table.
 	RoomsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_date", Type: field.TypeTime},
+		{Name: "updated_date", Type: field.TypeTime},
+		{Name: "deleted_date", Type: field.TypeTime, Nullable: true},
 		{Name: "title", Type: field.TypeString, Nullable: true, Size: 255},
 		{Name: "type", Type: field.TypeEnum, Enums: []string{"group", "private", "none"}, Default: "none"},
 	}
@@ -169,6 +199,9 @@ var (
 )
 
 func init() {
+	MessagesTable.ForeignKeys[0].RefTable = MessagesTable
+	MessagesTable.ForeignKeys[1].RefTable = RoomsTable
+	MessagesTable.ForeignKeys[2].RefTable = UsersTable
 	PostsTable.ForeignKeys[0].RefTable = UsersTable
 	UserFollowingTable.ForeignKeys[0].RefTable = UsersTable
 	UserFollowingTable.ForeignKeys[1].RefTable = UsersTable
