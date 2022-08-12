@@ -4,6 +4,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"moments/db"
 	"moments/ent"
+	r "moments/ent/room"
 	"moments/messages"
 	"moments/post"
 	"moments/room"
@@ -13,24 +14,6 @@ import (
 
 func init() {
 	loadDbEnv()
-}
-
-func createTestUser(t *testing.T, connection *db.DatabaseConnection, username, email string) *ent.User {
-	u := &ent.User{
-		Username: username,
-		Password: "testpass123",
-		Email:    email,
-	}
-	createdUser, err := user.CreateUser(connection, u)
-	if err != nil {
-		t.Fatal(err)
-	}
-	return createdUser
-}
-
-func deleteUser(t *testing.T, connection *db.DatabaseConnection, u *ent.User) {
-	err := user.DeleteUser(connection, u)
-	assert.Nil(t, err)
 }
 
 //TestUserModel test user model and its create method
@@ -339,4 +322,22 @@ func TestCreateMessage(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, senderUser)
 	assert.Equal(t, newPrivateRoom.ID, roomOwner.ID)
+}
+
+func TestTemp(t *testing.T) {
+	dbc, cancel := db.NewTestDB()
+	defer dbc.Client.Close()
+	defer cancel()
+
+	firstUser := createTestUser(t, dbc, "firstUser", "firstUser@email.com")
+	defer deleteUser(t, dbc, firstUser)
+
+	secondUser := createTestUser(t, dbc, "secondUser", "seconduser@email.com")
+	defer deleteUser(t, dbc, secondUser)
+
+	room.CreatePublicRoom(dbc, "title", firstUser, secondUser)
+	room.CreatePublicRoom(dbc, "title", firstUser, secondUser)
+
+	_, err := dbc.Client.Room.Query().Where(r.TitleEQ("title")).Only(*dbc.Ctx)
+	t.Log(err)
 }
