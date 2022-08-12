@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"moments/api/auth"
 	"moments/db"
@@ -29,4 +30,25 @@ func Register(u *ent.User) (gin.H, int) {
 		"user":    createdUser,
 		"token":   token,
 	}, http.StatusCreated
+}
+
+func Delete(username string) (gin.H, int) {
+	conn, cancel := db.New()
+	defer conn.Client.Close()
+	defer cancel()
+
+	fetchedUser, err := user.GetUserByUsername(conn, username)
+	if err != nil {
+		return checkErrors(err)
+	}
+
+	if err = user.DeleteUser(conn, fetchedUser); err != nil {
+		return checkErrors(err)
+	} else {
+		return gin.H{
+			"message": fmt.Sprintf("user with username %s deleted successfully", username),
+			"user":    fetchedUser,
+		}, http.StatusOK
+	}
+
 }

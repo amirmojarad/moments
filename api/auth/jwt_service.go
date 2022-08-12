@@ -28,13 +28,13 @@ type JwtService struct {
 }
 
 type claims struct {
-	Email string `json:"email"`
+	Username string `json:"username"`
 	jwt.Claims
 }
 
-func (service JwtService) GenerateToken(email string) string {
+func (service JwtService) GenerateToken(username string) string {
 	claims := &claims{
-		email,
+		username,
 		jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(time.Hour * 24).Unix(),
 			Issuer:    service.issure,
