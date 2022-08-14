@@ -23,6 +23,9 @@ func register() gin.HandlerFunc {
 
 func login() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-
+		var user ent.User
+		ctx.BindJSON(&user)
+		response, status := controllers.Login(&user)
+		ctx.IndentedJSON(status, response)
 	}
 }

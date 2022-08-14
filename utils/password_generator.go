@@ -8,7 +8,7 @@ func HashPassword(plainPassword string) (string, error) {
 	return string(bytes), err
 }
 
-// check plainPassword and hashedPassword are equal or not.
+// check plainPassword and hashedPassword are equal or not. returns True when passwords are equal
 func CheckPasswordHash(plainPassword, hashedPassword string) bool {
 	return bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(plainPassword)) == nil
 }

@@ -3,7 +3,7 @@ package main
 import (
 	"github.com/joho/godotenv"
 	"github.com/rs/zerolog/log"
-	"moments/db"
+	"moments/api"
 )
 
 func loadDbEnv() error {
@@ -16,10 +16,6 @@ func loadDbEnv() error {
 
 func main() {
 	loadDbEnv()
-	// dc stands for DatabaseConnection
-	dc, cancel := db.New()
-
-	defer dc.Client.Close()
-	defer cancel()
-
+	engine := api.RunEngine()
+	engine.Run(":8080")
 }

@@ -9,7 +9,7 @@ import (
 )
 
 type JWTService interface {
-	GenerateToken(email string) string
+	GenerateToken(username string) string
 	ValidateToken(token string) (*jwt.Token, error)
 	GetMapClaims(token *jwt.Token) jwt.MapClaims
 }
