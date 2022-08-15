@@ -43,7 +43,7 @@ func Register(u *ent.User) (gin.H, int) {
 		return checkErrors(err)
 	}
 
-	token := jwtService.GenerateToken(createdUser.Email)
+	token := jwtService.GenerateToken(createdUser.Username)
 	return gin.H{
 		"message": "user created successfully",
 		"user":    createdUser,

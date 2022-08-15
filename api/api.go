@@ -13,6 +13,8 @@ func getUsernameFromCtx(ctx *gin.Context) string {
 func runV1(engine *gin.Engine) {
 	v1 := engine.Group("/api/v1")
 	authGroup(v1)
+	userGroup(v1)
+	privateChatGroup(v1)
 }
 
 func RunEngine() *gin.Engine {

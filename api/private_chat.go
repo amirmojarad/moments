@@ -2,14 +2,14 @@ package api
 
 import (
 	"github.com/gin-gonic/gin"
+	"moments/api/middlewares"
 	"moments/controllers"
 )
 
 func privateChatGroup(group *gin.RouterGroup) {
-	privateChat := group.Group("/private_chat")
+	privateChat := group.Group("/private_chat", middlewares.CheckAuth())
 	privateChat.POST("/", createPrivateChat())
 	privateChat.GET("/all", getAllUserPrivateChats())
-	privateChat.GET("/:id", getPrivateChat())
 	privateChat.GET("/:id", getPrivateChat())
 	privateChat.DELETE("/:id", deletePrivateChat())
 	privateChat.POST("/:id/messages", addMessageToPrivateChat())
@@ -21,7 +21,7 @@ func createPrivateChat() gin.HandlerFunc {
 		username := getUsernameFromCtx(ctx)
 		var schema CreateRoomSchema
 		ctx.BindJSON(&schema)
-		response, statusCode := controllers.CreatePrivateChat(username, schema.Users[0])
+		response, statusCode := controllers.CreatePrivateChat(username, schema.Usernames)
 		ctx.IndentedJSON(statusCode, response)
 	}
 }
