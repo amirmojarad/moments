@@ -34,7 +34,7 @@ func checkErrors(err error) (gin.H, int) {
 		}, http.StatusInternalServerError
 	}
 	return gin.H{
-		"message": "unknown error occured",
+		"message": "unknown error occurred",
 		"err":     err.Error(),
 	}, http.StatusInternalServerError
 }

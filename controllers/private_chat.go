@@ -7,6 +7,7 @@ import (
 	"moments/room"
 	"moments/user"
 	"net/http"
+	"strings"
 )
 
 func CreatePrivateChat(firstUsername string, usernames []string) (gin.H, int) {
@@ -28,6 +29,12 @@ func CreatePrivateChat(firstUsername string, usernames []string) (gin.H, int) {
 		return checkErrors(err)
 	}
 	createdRoom, err := room.CreatePrivateRoom(conn, firstUser, secondUser)
+	if strings.Contains(err.Error(), "duplicate") {
+		return gin.H{
+			"message": "duplicate private chat with given users",
+			"error":   err.Error(),
+		}, http.StatusConflict
+	}
 	if err != nil {
 		return checkErrors(err)
 	}
