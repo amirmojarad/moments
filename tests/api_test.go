@@ -119,3 +119,47 @@ func TestCreatePrivateChat(t *testing.T) {
 	assert.Equal(t, "private", responseBody.CreatedRoom.Type.String())
 	assert.Equal(t, 2, len(responseBody.Users))
 }
+
+func TestCreateDuplicatePrivateChatWithSameUsers(t *testing.T) {
+
+	engine := api.RunEngine()
+
+	method := "POST"
+	url := "/api/v1/private_chat/"
+
+	dbc, cancel := db.New()
+	defer cancel()
+	defer dbc.Client.Close()
+
+	testUser := createTestUserViaAPI(t, dbc, "testuser", "testuser@email.com")
+	defer deleteUserByUsername(t, dbc, "testuser")
+
+	createTestUserViaAPI(t, dbc, "testuser1", "testuser1@email.com")
+	defer deleteUserByUsername(t, dbc, "testuser1")
+
+	requestSchema := api.CreateRoomSchema{Usernames: []string{"testuser1"}}
+	reqBody, err := json.Marshal(&requestSchema)
+
+	response := httptest.NewRecorder()
+	request, err := http.NewRequest(method, url, bytes.NewBuffer(reqBody))
+	assert.Nil(t, err)
+	request.Header.Add("Authorization", fmt.Sprintf("Bearer %s", testUser.Token))
+	engine.ServeHTTP(response, request)
+
+	w := httptest.NewRecorder()
+	request, err = http.NewRequest(method, url, bytes.NewBuffer(reqBody))
+	assert.Nil(t, err)
+	request.Header.Add("Authorization", fmt.Sprintf("Bearer %s", testUser.Token))
+	engine.ServeHTTP(w, request)
+
+	t.Log(w)
+
+	var responseBody api.CreateRoomResponseSchema
+	json.Unmarshal(response.Body.Bytes(), &responseBody)
+
+	t.Log(response.Body.String())
+
+	assert.Equal(t, http.StatusCreated, response.Code)
+	assert.Equal(t, "private", responseBody.CreatedRoom.Type.String())
+	assert.Equal(t, 2, len(responseBody.Users))
+}

@@ -262,6 +262,35 @@ func TestCreatePrivateRoom(t *testing.T) {
 	assert.True(t, result)
 }
 
+func TestCreateDuplicatePrivateRoom(t *testing.T) {
+	dbc, cancel := db.NewTestDB()
+	defer dbc.Client.Close()
+	defer cancel()
+
+	firstUser := createTestUser(t, dbc, "firstUser", "firstUser@email.com")
+	defer deleteUser(t, dbc, firstUser)
+
+	secondUser := createTestUser(t, dbc, "secondUser", "seconduser@email.com")
+	defer deleteUser(t, dbc, secondUser)
+
+	newPrivateRoom, err := room.CreatePrivateRoom(dbc, firstUser, secondUser)
+	assert.Nil(t, err)
+	assert.NotNil(t, newPrivateRoom)
+
+	result, err := room.IsUserInRoom(dbc, firstUser, newPrivateRoom.ID)
+	assert.Nil(t, err)
+	assert.True(t, result)
+
+	result, err = room.IsUserInRoom(dbc, secondUser, newPrivateRoom.ID)
+	assert.Nil(t, err)
+	assert.True(t, result)
+
+	newPrivateRoom1, err := room.CreatePrivateRoom(dbc, firstUser, secondUser)
+	assert.NotNil(t, err)
+	assert.Nil(t, newPrivateRoom1)
+
+}
+
 func TestCreatePublicRoom(t *testing.T) {
 	dbc, cancel := db.NewTestDB()
 	defer dbc.Client.Close()

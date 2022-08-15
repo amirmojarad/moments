@@ -32,7 +32,8 @@ func GetUserPrivateRoomByID(connection *db.DatabaseConnection, user *ent.User, i
 	return user.QueryRooms().Where(room.TypeEQ(room.TypePrivate)).Where(room.IDEQ(id)).Only(*connection.Ctx)
 }
 
-func GetPrivateUserParticipants(connection *db.DatabaseConnection, id int) ([]*ent.User, error) {
+// GetUsersOfPrivateChat returns users that participants in given room.
+func GetUsersOfPrivateChat(connection *db.DatabaseConnection, id int) ([]*ent.User, error) {
 	roomByID, err := GetRoomByID(connection, id)
 	if err != nil {
 		log.Error().Err(err).Msg("error while getting room from database in GetPrivateUserParticipants function")
@@ -41,6 +42,7 @@ func GetPrivateUserParticipants(connection *db.DatabaseConnection, id int) ([]*e
 	return roomByID.QueryUsers().All(*connection.Ctx)
 }
 
+// IsUserInRoom returns true when given user is in given room
 func IsUserInRoom(conn *db.DatabaseConnection, u *ent.User, roomID int) (bool, error) {
 	roomByID, err := GetRoomByID(conn, roomID)
 	if err != nil {
@@ -51,4 +53,15 @@ func IsUserInRoom(conn *db.DatabaseConnection, u *ent.User, roomID int) (bool, e
 		return false, err
 	}
 	return true, nil
+}
+
+func ExistRoomWithUsers(conn *db.DatabaseConnection, firstUser, secondUser *ent.User) bool {
+	givenRoom, err := conn.Client.Room.Query().Where(room.HasUsersWith(user.IDEQ(firstUser.ID))).Where(room.HasUsersWith(user.IDEQ(secondUser.ID))).Only(*conn.Ctx)
+	if ent.IsNotFound(err) {
+		return false
+	}
+	if givenRoom != nil {
+		return true
+	}
+	return false
 }

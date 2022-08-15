@@ -17,3 +17,6 @@ type CreateRoomResponseSchema struct {
 	Message     string     `json:"message"`
 	Users       []ent.User `json:"users"`
 }
+
+type GetAllUserPrivateChatsSchema struct {
+}

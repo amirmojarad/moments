@@ -27,6 +27,9 @@ func createPrivateChat() gin.HandlerFunc {
 }
 func getAllUserPrivateChats() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
+		username := getUsernameFromCtx(ctx)
+		response, statusCode := controllers.GetAllUserPrivateChats(username)
+		ctx.IndentedJSON(statusCode, response)
 	}
 }
 

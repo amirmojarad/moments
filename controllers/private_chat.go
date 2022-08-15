@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"moments/db"
 	"moments/room"
@@ -30,7 +31,7 @@ func CreatePrivateChat(firstUsername string, usernames []string) (gin.H, int) {
 	if err != nil {
 		return checkErrors(err)
 	}
-	users, err := room.GetPrivateUserParticipants(conn, createdRoom.ID)
+	users, err := room.GetUsersOfPrivateChat(conn, createdRoom.ID)
 	if err != nil {
 		return checkErrors(err)
 	}
@@ -39,4 +40,29 @@ func CreatePrivateChat(firstUsername string, usernames []string) (gin.H, int) {
 		"message":      "private chat created successfully.",
 		"users":        users,
 	}, http.StatusCreated
+}
+
+func GetAllUserPrivateChats(username string) (gin.H, int) {
+	if len(username) == 0 {
+		return gin.H{
+			"message": "request does not contain any token.",
+		}, http.StatusBadRequest
+	}
+
+	conn, cancel := db.New()
+	defer conn.Client.Close()
+	defer cancel()
+
+	userByUsername, err := user.GetUserByUsername(conn, username)
+	if err != nil {
+		return checkErrors(err)
+	}
+	privateChats, err := room.GetAllUserPrivateRooms(conn, userByUsername)
+	if err != nil {
+		return checkErrors(err)
+	}
+	return gin.H{
+		"private_chats": privateChats,
+		"message":       fmt.Sprintf("all private chats of user %s fetched successfully.", username),
+	}, http.StatusOK
 }
