@@ -29,7 +29,7 @@ func checkUserCredentials(u *ent.User) (gin.H, int) {
 // returns gin.H and int as response body and status code
 func Register(u *ent.User) (gin.H, int) {
 	resp, statusCode := checkUserCredentials(u)
-	if statusCode == -1 {
+	if statusCode != -1 {
 		return resp, statusCode
 	}
 	conn, cancel := db.New()
@@ -54,7 +54,7 @@ func Register(u *ent.User) (gin.H, int) {
 //Login gets user information and return response and status code
 func Login(u *ent.User) (gin.H, int) {
 	resp, statusCode := checkUserCredentials(u)
-	if statusCode == -1 {
+	if statusCode != -1 {
 		return resp, statusCode
 	}
 	conn, cancel := db.New()
@@ -77,6 +77,7 @@ func Login(u *ent.User) (gin.H, int) {
 		"message": "wrong password",
 	}, http.StatusBadRequest
 }
+
 // Delete deletes a user, if user with username exists in database
 func Delete(username string) (gin.H, int) {
 	conn, cancel := db.New()
@@ -104,13 +105,13 @@ func Update(username string, u *ent.User) (gin.H, int) {
 	defer conn.Client.Close()
 	defer cancel()
 
-	updatedUser, err:=user.UpdateUserWithUsername(conn,u,username)
+	updatedUser, err := user.UpdateUserWithUsername(conn, u, username)
 	if err != nil {
 		return checkErrors(err)
 	}
 	return gin.H{
 		"message": "user updated",
-		"user": updatedUser,
+		"user":    updatedUser,
 	}, http.StatusOK
 }
 
