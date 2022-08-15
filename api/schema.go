@@ -20,3 +20,8 @@ type CreateRoomResponseSchema struct {
 
 type GetAllUserPrivateChatsSchema struct {
 }
+
+type PostFollowSchema struct {
+	FollowingList []*ent.User `json:"following_list"`
+	Message       string      `json:"message"`
+}

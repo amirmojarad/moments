@@ -133,3 +133,44 @@ func ChangePassword(username string, newPassword, currentPassword string) (gin.H
 		"message": "password changed successfully",
 	}, http.StatusOK
 }
+
+func Follow(username string, usernames ...string) (gin.H, int) {
+	if len(username) == 0 {
+		return gin.H{
+			"message": "username that contains in token is empty",
+		}, http.StatusBadRequest
+	}
+	if len(usernames) == 0 {
+		return gin.H{
+			"message": "usernames list is empty.",
+		}, http.StatusNotFound
+	}
+
+	conn, cancel := db.New()
+	defer conn.Client.Close()
+	defer cancel()
+
+	userByUsername, err := user.GetUserByUsername(conn, username)
+	if err != nil {
+		return checkErrors(err)
+	}
+
+	for _, u := range usernames {
+		targetUser, err := user.GetUserByUsername(conn, u)
+		if err != nil {
+			return checkErrors(err)
+		}
+		_, err = user.AddFollowing(conn, userByUsername, targetUser)
+		if err != nil {
+			return checkErrors(err)
+		}
+	}
+
+	followingList, err := user.GetAllFollowing(conn, userByUsername)
+
+	return gin.H{
+		"message":        "users followed successfully",
+		"following_list": followingList,
+	}, http.StatusCreated
+
+}

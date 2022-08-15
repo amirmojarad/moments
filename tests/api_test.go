@@ -191,3 +191,79 @@ func TestCreatePrivateChatWithReversedUsers(t *testing.T) {
 	assert.Equal(t, http.StatusConflict, w.Code)
 
 }
+
+func TestPostFollow(t *testing.T) {
+	engine := api.RunEngine()
+
+	method := "POST"
+	url := "/api/v1/users/follow"
+
+	dbc, cancel := db.New()
+	defer cancel()
+	defer dbc.Client.Close()
+
+	firstUser := createTestUserViaAPI(t, dbc, "firstuser", "firstuser@email.com")
+	defer deleteUserByUsername(t, dbc, firstUser.User.Username)
+
+	secondUser := createTestUserViaAPI(t, dbc, "seconduser", "seconduser@email.com")
+	defer deleteUserByUsername(t, dbc, secondUser.User.Username)
+
+	usernames := []string{secondUser.User.Username}
+	body, err := json.Marshal(&usernames)
+	assert.Nil(t, err)
+	response := httptest.NewRecorder()
+	request, err := http.NewRequest(method, url, bytes.NewBuffer(body))
+	request.Header.Add("Authorization", fmt.Sprintf("Bearer %s", firstUser.Token))
+	engine.ServeHTTP(response, request)
+
+	var schema api.PostFollowSchema
+
+	json.Unmarshal(response.Body.Bytes(), &schema)
+
+	assert.Equal(t, http.StatusCreated, response.Code)
+	assert.Equal(t, schema.FollowingList[0].Username, secondUser.User.Username)
+}
+
+func TestPostFollowDuplicate(t *testing.T) {
+	engine := api.RunEngine()
+
+	method := "POST"
+	url := "/api/v1/users/follow"
+
+	dbc, cancel := db.New()
+	defer cancel()
+	defer dbc.Client.Close()
+
+	firstUser := createTestUserViaAPI(t, dbc, "firstuser", "firstuser@email.com")
+	defer deleteUserByUsername(t, dbc, firstUser.User.Username)
+
+	secondUser := createTestUserViaAPI(t, dbc, "seconduser", "seconduser@email.com")
+	defer deleteUserByUsername(t, dbc, secondUser.User.Username)
+
+	usernames := []string{secondUser.User.Username}
+	body, err := json.Marshal(&usernames)
+	assert.Nil(t, err)
+	response := httptest.NewRecorder()
+	request, err := http.NewRequest(method, url, bytes.NewBuffer(body))
+	request.Header.Add("Authorization", fmt.Sprintf("Bearer %s", firstUser.Token))
+	engine.ServeHTTP(response, request)
+
+	var schema api.PostFollowSchema
+
+	json.Unmarshal(response.Body.Bytes(), &schema)
+
+	assert.Equal(t, http.StatusCreated, response.Code)
+	assert.Equal(t, schema.FollowingList[0].Username, secondUser.User.Username)
+
+	response = httptest.NewRecorder()
+	request, err = http.NewRequest(method, url, bytes.NewBuffer(body))
+	request.Header.Add("Authorization", fmt.Sprintf("Bearer %s", firstUser.Token))
+	engine.ServeHTTP(response, request)
+
+	json.Unmarshal(response.Body.Bytes(), &schema)
+
+	t.Log(response.Body.String())
+
+	assert.Equal(t, http.StatusConflict, response.Code)
+	assert.Equal(t, schema.Message, "constraint error.")
+}

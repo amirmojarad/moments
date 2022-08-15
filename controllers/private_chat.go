@@ -29,13 +29,13 @@ func CreatePrivateChat(firstUsername string, usernames []string) (gin.H, int) {
 		return checkErrors(err)
 	}
 	createdRoom, err := room.CreatePrivateRoom(conn, firstUser, secondUser)
-	if strings.Contains(err.Error(), "duplicate") {
-		return gin.H{
-			"message": "duplicate private chat with given users",
-			"error":   err.Error(),
-		}, http.StatusConflict
-	}
 	if err != nil {
+		if strings.Contains(err.Error(), "duplicate") {
+			return gin.H{
+				"message": "duplicate private chat with given users",
+				"error":   err.Error(),
+			}, http.StatusConflict
+		}
 		return checkErrors(err)
 	}
 	users, err := room.GetUsersOfPrivateChat(conn, createdRoom.ID)

@@ -13,6 +13,12 @@ func userGroup(group *gin.RouterGroup) {
 	user.PUT("/", updateUser())
 	user.PATCH("/", updateUser())
 	user.DELETE("/", deleteUser())
+
+	// Follow System
+	user.POST("/follow", follow())
+	user.DELETE("/follow", unfollow())
+	user.GET("/followers", getAllFollowers())
+	user.GET("/following", getAllFollowing())
 }
 
 func deleteUser() gin.HandlerFunc {
@@ -46,4 +52,33 @@ func changePassword() gin.HandlerFunc {
 		ctx.IndentedJSON(statusCode, responseBody)
 	}
 
+}
+
+func follow() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		var usernames []string
+		ctx.BindJSON(&usernames)
+		username := getUsernameFromCtx(ctx)
+		response, statusCode := controllers.Follow(username, usernames...)
+		ctx.IndentedJSON(statusCode, response)
+	}
+
+}
+
+func unfollow() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+
+	}
+}
+
+func getAllFollowers() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+
+	}
+}
+
+func getAllFollowing() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		
+	}
 }
