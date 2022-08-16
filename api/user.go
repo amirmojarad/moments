@@ -67,7 +67,11 @@ func follow() gin.HandlerFunc {
 
 func unfollow() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-
+		var usernames []string
+		ctx.BindJSON(&usernames)
+		username := getUsernameFromCtx(ctx)
+		response, statusCode := controllers.Unfollow(username, usernames...)
+		ctx.IndentedJSON(statusCode, response)
 	}
 }
 
@@ -79,6 +83,6 @@ func getAllFollowers() gin.HandlerFunc {
 
 func getAllFollowing() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		
+
 	}
 }

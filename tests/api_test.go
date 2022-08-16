@@ -267,3 +267,44 @@ func TestPostFollowDuplicate(t *testing.T) {
 	assert.Equal(t, http.StatusConflict, response.Code)
 	assert.Equal(t, schema.Message, "constraint error.")
 }
+
+func TestUnfollowAPI(t *testing.T) {
+	engine := api.RunEngine()
+
+	method := "DELETE"
+	url := "/api/v1/users/follow"
+
+	dbc, cancel := db.New()
+	defer cancel()
+	defer dbc.Client.Close()
+
+	firstUser := createTestUserViaAPI(t, dbc, "firstuser", "firstuser@email.com")
+	defer deleteUserByUsername(t, dbc, firstUser.User.Username)
+
+	_, createdUserSchema := followViaAPI(t, dbc, firstUser.Token, "testtestuser")
+
+	defer deleteUserByUsername(t, dbc, createdUserSchema[0].User.Username)
+
+	usernames := []string{"testuser1", "testuser2", "testuser3"}
+
+	_, createdUserSchema = followViaAPI(t, dbc, firstUser.Token, usernames...)
+	defer func() {
+		for _, schema := range createdUserSchema {
+			deleteUserByUsername(t, dbc, schema.User.Username)
+		}
+	}()
+	var schema api.PostFollowSchema
+
+	body, err := json.Marshal(&usernames)
+	response := httptest.NewRecorder()
+	request, err := http.NewRequest(method, url, bytes.NewBuffer(body))
+	assert.Nil(t, err)
+	request.Header.Add("Authorization", fmt.Sprintf("Bearer %s", firstUser.Token))
+	engine.ServeHTTP(response, request)
+
+	json.Unmarshal(response.Body.Bytes(), &schema)
+
+	t.Log(response.Body.String())
+
+	assert.Equal(t, http.StatusOK, response.Code)
+}

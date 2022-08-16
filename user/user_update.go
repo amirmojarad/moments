@@ -4,6 +4,7 @@ import (
 	"errors"
 	"moments/db"
 	"moments/ent"
+	"moments/ent/user"
 	"moments/utils"
 	"time"
 )
@@ -37,4 +38,16 @@ func AddFollowing(connection *db.DatabaseConnection, user *ent.User, newFollowin
 
 func RemoveFollowing(connection *db.DatabaseConnection, user *ent.User, target *ent.User) (*ent.User, error) {
 	return user.Update().RemoveFollowing(target).Save(*connection.Ctx)
+}
+
+func GetAllUsersByUsernames(conn *db.DatabaseConnection, usernames ...string) ([]int, error) {
+	return conn.Client.User.Query().Where(user.UsernameIn(usernames...)).IDs(*conn.Ctx)
+}
+
+func RemoveFollowings(conn *db.DatabaseConnection, u *ent.User, targetsUsernames ...string) (*ent.User, error) {
+	usersIDs, err := GetAllUsersByUsernames(conn, targetsUsernames...)
+	if err != nil {
+		return nil, err
+	}
+	return u.Update().RemoveFollowingIDs(usersIDs...).Save(*conn.Ctx)
 }

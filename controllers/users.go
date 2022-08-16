@@ -11,6 +11,22 @@ import (
 	"net/http"
 )
 
+// isStringsEmpty returns nil, -1 when strings are not empty.
+// in other hand return error responses
+func isStringsEmpty(username string, usernames ...string) (gin.H, int) {
+	if len(username) == 0 {
+		return gin.H{
+			"message": "username that contains in token is empty",
+		}, http.StatusBadRequest
+	}
+	if len(usernames) == 0 {
+		return gin.H{
+			"message": "usernames list is empty.",
+		}, http.StatusNotFound
+	}
+	return nil, -1
+}
+
 func checkUserCredentials(u *ent.User) (gin.H, int) {
 	if len(u.Username) == 0 {
 		return gin.H{
@@ -135,15 +151,9 @@ func ChangePassword(username string, newPassword, currentPassword string) (gin.H
 }
 
 func Follow(username string, usernames ...string) (gin.H, int) {
-	if len(username) == 0 {
-		return gin.H{
-			"message": "username that contains in token is empty",
-		}, http.StatusBadRequest
-	}
-	if len(usernames) == 0 {
-		return gin.H{
-			"message": "usernames list is empty.",
-		}, http.StatusNotFound
+	resp, code := isStringsEmpty(username, usernames...)
+	if code != -1 {
+		return resp, code
 	}
 
 	conn, cancel := db.New()
@@ -172,5 +182,36 @@ func Follow(username string, usernames ...string) (gin.H, int) {
 		"message":        "users followed successfully",
 		"following_list": followingList,
 	}, http.StatusCreated
+
+}
+
+func Unfollow(username string, usernames ...string) (gin.H, int) {
+	resp, code := isStringsEmpty(username, usernames...)
+	if code != -1 {
+		return resp, code
+	}
+
+	conn, cancel := db.New()
+	defer conn.Client.Close()
+	defer cancel()
+
+	userByUsername, err := user.GetUserByUsername(conn, username)
+	if err != nil {
+		return checkErrors(err)
+	}
+
+	_, err = user.RemoveFollowings(conn, userByUsername, usernames...)
+	if err != nil {
+		return checkErrors(err)
+	}
+
+	followingList, err := user.GetAllFollowing(conn, userByUsername)
+	if err != nil {
+		return checkErrors(err)
+	}
+	return gin.H{
+		"message":        "given users unfollowed successfully",
+		"following_list": followingList,
+	}, http.StatusOK
 
 }
