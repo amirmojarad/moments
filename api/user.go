@@ -5,6 +5,8 @@ import (
 	"moments/api/middlewares"
 	"moments/controllers"
 	"moments/ent"
+	"net/http"
+	"strconv"
 )
 
 func userGroup(group *gin.RouterGroup) {
@@ -77,12 +79,30 @@ func unfollow() gin.HandlerFunc {
 
 func getAllFollowers() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-
+		username := getUsernameFromCtx(ctx)
+		page, err := strconv.Atoi(ctx.DefaultQuery("page", "1"))
+		if err != nil {
+			ctx.IndentedJSON(http.StatusInternalServerError, gin.H{
+				"message": "error while fetching page in query",
+				"error":   err,
+			})
+		}
+		response, statusCode := controllers.GetAllUserFollowers(username, page)
+		ctx.IndentedJSON(statusCode, response)
 	}
 }
 
 func getAllFollowing() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-
+		username := getUsernameFromCtx(ctx)
+		page, err := strconv.Atoi(ctx.DefaultQuery("page", "1"))
+		if err != nil {
+			ctx.IndentedJSON(http.StatusInternalServerError, gin.H{
+				"message": "error while fetching page in query",
+				"error":   err,
+			})
+		}
+		response, statusCode := controllers.GetAllUserFollowing(username, page)
+		ctx.IndentedJSON(statusCode, response)
 	}
 }

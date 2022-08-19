@@ -215,3 +215,63 @@ func Unfollow(username string, usernames ...string) (gin.H, int) {
 	}, http.StatusOK
 
 }
+
+// each page returns 20 results
+func GetAllUserFollowers(username string, page int) (gin.H, int) {
+	if len(username) == 0 {
+		return gin.H{
+			"message": "username is empty",
+		}, http.StatusBadRequest
+	}
+
+	conn, cancel := db.New()
+	defer conn.Client.Close()
+	defer cancel()
+	userByUsername, err := user.GetUserByUsername(conn, username)
+	if err != nil {
+		return checkErrors(err)
+	}
+
+	end := page * 20
+	start := end - 20
+
+	followers, err := user.GetAllFollowers(conn, userByUsername)
+	if err != nil {
+		return checkErrors(err)
+	}
+	return gin.H{
+		"page":      page,
+		"followers": followers[start:end],
+	}, http.StatusOK
+
+}
+
+// each page returns 20 results
+func GetAllUserFollowing(username string, page int) (gin.H, int) {
+	if len(username) == 0 {
+		return gin.H{
+			"message": "username is empty",
+		}, http.StatusBadRequest
+	}
+
+	conn, cancel := db.New()
+	defer conn.Client.Close()
+	defer cancel()
+	userByUsername, err := user.GetUserByUsername(conn, username)
+	if err != nil {
+		return checkErrors(err)
+	}
+
+	end := page * 20
+	start := end - 20
+
+	followers, err := user.GetAllFollowing(conn, userByUsername)
+	if err != nil {
+		return checkErrors(err)
+	}
+	return gin.H{
+		"page":      page,
+		"followers": followers[start:end],
+	}, http.StatusOK
+
+}

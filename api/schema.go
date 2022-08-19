@@ -25,3 +25,8 @@ type PostFollowSchema struct {
 	FollowingList []*ent.User `json:"following_list"`
 	Message       string      `json:"message"`
 }
+
+type FollowersList struct {
+	Followers []*ent.User `json:"followers"`
+	Page      int         `json:"page"`
+}

@@ -308,3 +308,46 @@ func TestUnfollowAPI(t *testing.T) {
 
 	assert.Equal(t, http.StatusOK, response.Code)
 }
+
+//func TestGetAllFollowers(t *testing.T) {
+//	engine := api.RunEngine()
+//
+//	method := "GET"
+//	url := "/api/v1/users/following"
+//
+//	dbc, cancel := db.New()
+//	defer cancel()
+//	defer dbc.Client.Close()
+//
+//	firstUser := createTestUserViaAPI(t, dbc, "firstuser", "firstuser@email.com")
+//	defer deleteUserByUsername(t, dbc, firstUser.User.Username)
+//
+//	usernames := make([]string, 40)
+//
+//	for i := 1; i <= 40; i++ {
+//		usernames = append(usernames, fmt.Sprintf("testuser%d", i))
+//	}
+//
+//	_, users := followViaAPI(t, dbc, firstUser.Token, usernames...)
+//
+//	defer func() {
+//		for _, u := range users {
+//			deleteUserByUsername(t, dbc, u.User.Username)
+//		}
+//	}()
+//
+//	page := 1
+//	response := httptest.NewRecorder()
+//	request, err := http.NewRequest(method, fmt.Sprintf("%s?page=%d", url, page), nil)
+//	request.Header.Add("Authorization", fmt.Sprintf("Bearer %s", firstUser.Token))
+//	assert.Nil(t, err)
+//	engine.ServeHTTP(response, request)
+//
+//	var schema api.FollowersList
+//	json.Unmarshal(response.Body.Bytes(), &schema)
+//
+//	t.Log(response.Body.Bytes())
+//
+//	assert.Equal(t, http.StatusOK, response.Code)
+//
+//}
